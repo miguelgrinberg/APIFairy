@@ -293,13 +293,23 @@ class TestAPIFairy(unittest.TestCase):
         assert 'Schema2List' in apispec['components']['schemas']
         assert 'Foo' in apispec['components']['schemas']
 
-    def test_apispec_path_summary_from_docs(self):
+    def test_apispec_path_summary_description_from_docs(self):
         app, apifairy = self.create_app()
 
         @app.route('/users')
         @response(Schema)
         def get_users():
-            "Get Users."
+            """Get Users"""
+            pass
+
+        @app.route('/users/<id>', methods=['PUT'])
+        @response(Schema)
+        def update_user(id):
+            """
+            Update User
+
+            Update a user with specified ID.
+            """
             pass
 
         client = app.test_client()
@@ -307,4 +317,44 @@ class TestAPIFairy(unittest.TestCase):
         rv = client.get('/apispec.json')
         assert rv.status_code == 200
         validate_spec(rv.json)
-        assert rv.json['paths']['/users']['get']['summary'] == 'Get Users.'
+        assert rv.json['paths']['/users']['get']['summary'] == 'Get Users'
+        assert rv.json['paths']['/users/{id}']['put']['summary'] == \
+            'Update User'
+        assert rv.json['paths']['/users/{id}']['put']['description'] == \
+            'Update a user with specified ID.'
+
+    def test_apispec_path_summary_auto_generation(self):
+        app, apifairy = self.create_app()
+
+        @app.route('/users')
+        @response(Schema)
+        def get_users():
+            pass
+
+        @app.route('/users/<id>', methods=['PUT'])
+        @response(Schema)
+        def update_user(id):
+            pass
+
+        @app.route('/users/<id>', methods=['DELETE'])
+        @response(Schema)
+        def delete_user(id):
+            """
+            Summary from Docs
+
+            Delete a user with specified ID.
+            """
+            pass
+
+        client = app.test_client()
+
+        rv = client.get('/apispec.json')
+        assert rv.status_code == 200
+        validate_spec(rv.json)
+        assert rv.json['paths']['/users']['get']['summary'] == 'Get Users'
+        assert rv.json['paths']['/users/{id}']['put']['summary'] == \
+            'Update User'
+        assert rv.json['paths']['/users/{id}']['delete']['summary'] == \
+            'Summary from Docs'
+        assert rv.json['paths']['/users/{id}']['delete']['description'] == \
+            'Delete a user with specified ID.'
