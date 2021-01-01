@@ -1,5 +1,9 @@
 # APIFairy Change Log
 
+**Release 0.6.3** - Unreleased
+
+- Fixed multiple path parameters registration ([#11](https://github.com/miguelgrinberg/apifairy/pull/11)).
+
 **Release 0.6.2** - 2020-10-10
 
 - Documentation updates ([commit](https://github.com/miguelgrinberg/apifairy/commit/ae72b2abc850ecf58c47603fac39fc92fd5c76ec))
