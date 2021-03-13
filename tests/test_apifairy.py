@@ -351,3 +351,54 @@ class TestAPIFairy(unittest.TestCase):
             'get']['parameters'][0]['name'] == 'article_id'
         assert rv.json['paths']['/users/{user_id}/articles/{article_id}'][
             'get']['parameters'][1]['name'] == 'user_id'
+
+    def test_path_arguments_detection(self):
+        app, apifairy = self.create_app()
+
+        @app.route('/<foo>')
+        @response(Schema)
+        def pattern1():
+            pass
+
+        @app.route('/foo/<bar>')
+        @response(Schema)
+        def pattern2():
+            pass
+
+        @app.route('/<foo>/bar')
+        @response(Schema)
+        def pattern3():
+            pass
+
+        @app.route('/<int:foo>/<bar>/baz')
+        @response(Schema)
+        def pattern4():
+            pass
+
+        @app.route('/foo/<int:bar>/<int:baz>')
+        @response(Schema)
+        def pattern5():
+            pass
+
+        @app.route('/<int:foo>/<bar>/<float:baz>')
+        @response(Schema)
+        def pattern6():
+            pass
+
+        client = app.test_client()
+
+        rv = client.get('/apispec.json')
+        assert rv.status_code == 200
+        validate_spec(rv.json)
+        assert '/{foo}' in rv.json['paths']
+        assert '/foo/{bar}' in rv.json['paths']
+        assert '/{foo}/bar' in rv.json['paths']
+        assert '/{foo}/{bar}/baz' in rv.json['paths']
+        assert '/foo/{bar}/{baz}' in rv.json['paths']
+        assert '/{foo}/{bar}/{baz}' in rv.json['paths']
+        assert rv.json['paths']['/{foo}/{bar}/{baz}']['get'][
+            'parameters'][0]['schema']['type'] == 'number'
+        assert rv.json['paths']['/{foo}/{bar}/{baz}']['get'][
+            'parameters'][1]['schema']['type'] == 'string'
+        assert rv.json['paths']['/{foo}/{bar}/{baz}']['get'][
+            'parameters'][2]['schema']['type'] == 'integer'
