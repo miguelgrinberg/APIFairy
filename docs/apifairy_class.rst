@@ -64,7 +64,7 @@ definition, which will then be rendered::
 APIFairy.error_handler
 ----------------------
 
-The `error_handler`` method can be used to register a custom error handler
+The ``error_handler`` method can be used to register a custom error handler
 function that will be invoked whenever a validation error is raised by the
 webargs project. This method can be used as a decorator as follows::
 
