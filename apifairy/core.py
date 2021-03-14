@@ -218,7 +218,7 @@ class APIFairy:
                     'parameters': [
                         {'in': location, 'schema': schema}
                         for schema, location in view_func._spec.get('args', [])
-                        if location != 'body'
+                        if location == 'query'
                     ],
                 }
                 if tag:
