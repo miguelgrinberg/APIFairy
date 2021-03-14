@@ -161,7 +161,7 @@ class APIFairy:
                     elif isinstance(auth, HTTPTokenAuth):
                         name = 'api_key'
                     else:
-                        raise RuntimeError('Uknown authentication scheme')
+                        raise RuntimeError('Unknown authentication scheme')
                     if name in auth_names:
                         v = 2
                         new_name = f'{name}_{v}'
