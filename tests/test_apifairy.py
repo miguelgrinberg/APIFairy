@@ -166,7 +166,7 @@ class TestAPIFairy(unittest.TestCase):
         assert rv.headers['Location'] == 'http://localhost/baz'
 
         rv = client.get('/baz?id=4')
-        assert rv.status_code == 200
+        assert rv.status_code == 201
         assert rv.json == {'id': 123, 'name': 'foo'}
         assert 'Location' not in rv.headers
 
