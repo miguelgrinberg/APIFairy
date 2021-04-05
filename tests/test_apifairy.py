@@ -290,7 +290,7 @@ class TestAPIFairy(unittest.TestCase):
             apispec = apifairy.apispec
         assert len(apispec['components']['schemas']) == 3
         assert 'SchemaUpdate' in apispec['components']['schemas']
-        assert 'Schema2List' in apispec['components']['schemas']
+        assert 'Schema2' in apispec['components']['schemas']
         assert 'Foo' in apispec['components']['schemas']
 
     def test_apispec_path_summary_from_docs(self):
