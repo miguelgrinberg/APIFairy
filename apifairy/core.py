@@ -89,9 +89,7 @@ class APIFairy:
             name = schema.__class__.__name__
             if name.endswith("Schema"):
                 name = name[:-6] or name
-            if schema.many:
-                name += 'List'
-            elif schema.partial:
+            if schema.partial:
                 name += 'Update'
             return name
 
