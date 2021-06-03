@@ -1,6 +1,7 @@
 import unittest
+import pytest
 
-from flask import Flask
+from flask import Flask, Blueprint
 from flask_httpauth import HTTPBasicAuth
 from flask_marshmallow import Marshmallow
 from marshmallow import EXCLUDE
@@ -402,3 +403,36 @@ class TestAPIFairy(unittest.TestCase):
             'parameters'][1]['schema']['type'] == 'string'
         assert rv.json['paths']['/{foo}/{bar}/{baz}']['get'][
             'parameters'][2]['schema']['type'] == 'number'
+
+    def test_path_tags_with_nesting_blueprints(self):
+        if not hasattr(Blueprint, 'register_blueprint'):
+            pytest.skip('This test requires Flask 2.0 or higher.')
+
+        app, apifairy = self.create_app()
+
+        parent_bp = Blueprint('parent', __name__, url_prefix='/parent')
+        child_bp = Blueprint('child', __name__, url_prefix='/child')
+
+        @parent_bp.route('/')
+        @response(Schema)
+        def foo():
+            pass
+
+        @child_bp.route('/')
+        @response(Schema)
+        def bar():
+            pass
+
+        parent_bp.register_blueprint(child_bp)
+        app.register_blueprint(parent_bp)
+
+        client = app.test_client()
+
+        rv = client.get('/apispec.json')
+        assert rv.status_code == 200
+        validate_spec(rv.json)
+        assert {'name': 'Parent'} in rv.json['tags']
+        assert {'name': 'Parent.Child'} in rv.json['tags']
+        assert rv.json['paths']['/parent/']['get']['tags'] == ['Parent']
+        assert rv.json['paths']['/parent/child/']['get'][
+            'tags'] == ['Parent.Child']
