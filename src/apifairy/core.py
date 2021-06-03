@@ -114,7 +114,7 @@ class APIFairy:
                 view_func = current_app.view_functions[rule.endpoint]
                 if hasattr(view_func, '_spec'):
                     if '.' in rule.endpoint:
-                        blueprint = rule.endpoint.split('.', 1)[0]
+                        blueprint = rule.endpoint.rsplit('.', 1)[0]
                         if blueprint not in blueprints:
                             blueprints.append(blueprint)
             tags = []
@@ -208,7 +208,7 @@ class APIFairy:
                 continue
             tag = None
             if '.' in rule.endpoint:
-                tag = rule.endpoint.split('.', 1)[0].title()
+                tag = rule.endpoint.rsplit('.', 1)[0].title()
             for method in ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']:
                 if method not in rule.methods:
                     continue
