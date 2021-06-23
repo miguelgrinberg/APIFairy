@@ -1,3 +1,4 @@
+import sys
 import unittest
 import pytest
 
@@ -436,3 +437,66 @@ class TestAPIFairy(unittest.TestCase):
         assert rv.json['paths']['/parent/']['get']['tags'] == ['Parent']
         assert rv.json['paths']['/parent/child/']['get'][
             'tags'] == ['Parent.Child']
+
+    def test_async_views(self):
+        if not sys.version_info >= (3, 7):
+            pytest.skip('This test requires Python 3.7 or higher.')
+
+        app, apifairy = self.create_app()
+        auth = HTTPBasicAuth()
+
+        @auth.verify_password
+        def verify_password(username, password):
+            if username == 'foo' and password == 'bar':
+                return {'user': 'foo'}
+            elif username == 'bar' and password == 'foo':
+                return {'user': 'bar'}
+
+        @auth.get_user_roles
+        def get_roles(user):
+            if user['user'] == 'bar':
+                return 'admin'
+            return 'normal'
+
+        @app.route('/foo', methods=['POST'])
+        @authenticate(auth)
+        @arguments(QuerySchema)
+        @body(Schema)
+        @response(Schema)
+        @other_responses({404: 'foo not found'})
+        async def foo(query, body):
+            return {'id': query['id'], 'name': auth.current_user()['user']}
+
+        client = app.test_client()
+
+        rv = client.get('/apispec.json')
+        assert rv.status_code == 200
+        validate_spec(rv.json)
+        assert rv.json['openapi'] == '3.0.3'
+        assert rv.json['info']['title'] == 'Foo'
+        assert rv.json['info']['version'] == '1.0'
+
+        assert apifairy.apispec is apifairy.apispec
+
+        rv = client.get('/docs')
+        assert rv.status_code == 200
+        assert b'redoc.standalone.js' in rv.data
+
+        rv = client.post('/foo')
+        assert rv.status_code == 401
+
+        rv = client.post(
+            '/foo', headers={'Authorization': 'Basic Zm9vOmJhcg=='})
+        assert rv.json['messages']['json']['name'] == \
+            ['Missing data for required field.']
+        assert rv.status_code == 400
+
+        rv = client.post('/foo', json={'name': 'john'},
+                         headers={'Authorization': 'Basic Zm9vOmJhcg=='})
+        assert rv.status_code == 200
+        assert rv.json == {'id': 1, 'name': 'foo'}
+
+        rv = client.post('/foo?id=2', json={'name': 'john'},
+                         headers={'Authorization': 'Basic Zm9vOmJhcg=='})
+        assert rv.status_code == 200
+        assert rv.json == {'id': 2, 'name': 'foo'}
