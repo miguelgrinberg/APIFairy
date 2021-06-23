@@ -1,6 +1,7 @@
 from functools import wraps
 
-from flask import Response
+import flask
+from flask import current_app, Response
 from webargs.flaskparser import FlaskParser as BaseFlaskParser
 
 from apifairy.exceptions import ValidationError
@@ -20,6 +21,18 @@ parser = FlaskParser()
 use_args = parser.use_args
 
 
+def _ensure_sync(f):
+    if flask.__version__ < '2.' or hasattr(f, '_sync_ensured'):
+        return f
+
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        return current_app.ensure_sync(f)(*args, **kwargs)
+
+    wrapper._sync_ensured = True
+    return wrapper
+
+
 def _annotate(f, **kwargs):
     if not hasattr(f, '_spec'):
         f._spec = {}
@@ -32,6 +45,7 @@ def authenticate(auth, **kwargs):
         roles = kwargs.get('role')
         if not isinstance(roles, list):  # pragma: no cover
             roles = [roles] if roles is not None else []
+        f = _ensure_sync(f)
         _annotate(f, auth=auth, roles=roles)
         return auth.login_required(**kwargs)(f)
     return decorator
@@ -42,6 +56,7 @@ def arguments(schema, location='query', **kwargs):
         schema = schema()
 
     def decorator(f):
+        f = _ensure_sync(f)
         if not hasattr(f, '_spec') or f._spec.get('args') is None:
             _annotate(f, args=[])
         f._spec['args'].append((schema, location))
@@ -54,6 +69,7 @@ def body(schema, **kwargs):
         schema = schema()
 
     def decorator(f):
+        f = _ensure_sync(f)
         _annotate(f, body=schema)
         return use_args(schema, location='json', **kwargs)(f)
     return decorator
@@ -64,6 +80,7 @@ def response(schema, status_code=200, description=None):
         schema = schema()
 
     def decorator(f):
+        f = _ensure_sync(f)
         _annotate(f, response=schema, status_code=status_code,
                   description=description)
 
@@ -93,6 +110,7 @@ def response(schema, status_code=200, description=None):
 
 def other_responses(responses):
     def decorator(f):
+        f = _ensure_sync(f)
         _annotate(f, other_responses=responses)
         return f
     return decorator
