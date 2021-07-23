@@ -221,10 +221,12 @@ class APIFairy:
                 }
                 if tag:
                     operation['tags'] = [tag]
-                docs = (view_func.__doc__ or '').strip().split('\n')
+                docs = [line.strip() for line in (
+                    view_func.__doc__ or '').strip().split('\n')]
                 if docs[0]:
                     operation['summary'] = docs[0]
                 if len(docs) > 1:
+                    print(docs)
                     operation['description'] = '\n'.join(docs[1:]).strip()
                 if view_func._spec.get('response'):
                     code = str(view_func._spec['status_code'])
