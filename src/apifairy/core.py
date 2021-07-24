@@ -226,7 +226,6 @@ class APIFairy:
                 if docs[0]:
                     operation['summary'] = docs[0]
                 if len(docs) > 1:
-                    print(docs)
                     operation['description'] = '\n'.join(docs[1:]).strip()
                 if view_func._spec.get('response'):
                     code = str(view_func._spec['status_code'])
