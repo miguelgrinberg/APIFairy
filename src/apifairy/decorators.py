@@ -104,9 +104,7 @@ def response(schema, status_code=200, description=None):
                 return rv
             else:
                 return schema.dump(rv), status_code
-
         return _response
-
     return decorator
 
 
