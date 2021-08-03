@@ -91,7 +91,7 @@ def response(schema, status_code=200, description=None):
                 raise RuntimeError(
                     'The @response decorator cannot handle Response objects.')
             if isinstance(rv, tuple):
-                json = schema.jsonify(rv[0])
+                json = schema.dump(rv[0])
                 if len(rv) == 2:
                     if not isinstance(rv[1], int):
                         rv = (json, status_code, rv[1])
@@ -103,8 +103,10 @@ def response(schema, status_code=200, description=None):
                     rv = (json, status_code)
                 return rv
             else:
-                return schema.jsonify(rv), status_code
+                return schema.dump(rv), status_code
+
         return _response
+
     return decorator
 
 
