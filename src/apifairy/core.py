@@ -4,7 +4,7 @@ import sys
 
 from apispec import APISpec
 from apispec.ext.marshmallow import MarshmallowPlugin
-from flask import current_app, Blueprint, render_template
+from flask import current_app, Blueprint, render_template, request
 from flask_marshmallow import fields
 try:
     from flask_marshmallow import sqla
@@ -106,6 +106,9 @@ class APIFairy:
                 module_name = '.' + module_name
             module_name = module_name.rsplit('.', 1)[0]
 
+        # servers
+        servers = [{'url': request.url_root}]
+
         # tags
         tags = self.tags
         if tags is None:
@@ -135,6 +138,7 @@ class APIFairy:
             openapi_version='3.0.3',
             plugins=[ma_plugin],
             info=info,
+            servers=servers,
             tags=tags,
         )
 
