@@ -1,5 +1,15 @@
 # APIFairy Change Log
 
+**Release 0.8.0** - 2021-08-07
+
+- Add `servers` section ([commit](https://github.com/miguelgrinberg/apifairy/commit/6d5d614ff0dc9ef7666191f4ca7c9e9139518d99))
+- Add `operationId` for each endpoint ([commit](https://github.com/miguelgrinberg/apifairy/commit/198855f810b4f97b7f3e61c0cf602e31ab2e0fa8))
+- Add default description for responses ([commit](https://github.com/miguelgrinberg/apifairy/commit/73ec17f13933c5d4a55a81d5131706a531f88dfb))
+- Remove indentation spaces from docstrings [#30](https://github.com/miguelgrinberg/apifairy/issues/30) ([commit](https://github.com/miguelgrinberg/apifairy/commit/30ef9983bf0c5bb31451cdcc2d5d91447d3cf80e))
+- Support Flask 2 async views ([commit](https://github.com/miguelgrinberg/apifairy/commit/bae399aa76d13ebf167a5933f50ddbb5f3923039))
+- Support nested blueprints ([commit](https://github.com/miguelgrinberg/apifairy/commit/c5883a626631744c8ec28782bf852c738169dd8f)) (thanks **Grey Li**!)
+- Improved project structure ([commit](https://github.com/miguelgrinberg/apifairy/commit/1fbd5a59d3c8aa4e2ea38331c750e41f3164bd3f))
+
 **Release 0.7.0** - 2021-05-24
 
 - Correctly handle routes with multiple path arguments [#11](https://github.com/miguelgrinberg/apifairy/issues/11) ([commit](https://github.com/miguelgrinberg/apifairy/commit/898b2f1f6bb7de5b5125162fe17879e4d1734dee)) (thanks **Grey Li**!)
