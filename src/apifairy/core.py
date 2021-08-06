@@ -214,10 +214,14 @@ class APIFairy:
             tag = None
             if '.' in rule.endpoint:
                 tag = rule.endpoint.rsplit('.', 1)[0].title()
-            for method in ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']:
-                if method not in rule.methods:
-                    continue
+            methods = [method for method in rule.methods
+                       if method in ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']]
+            for method in methods:
+                operation_id = rule.endpoint.replace('.', '_')
+                if len(methods) > 1:
+                    operation_id = method.lower() + '_' + operation_id
                 operation = {
+                    'operationId': operation_id,
                     'parameters': [
                         {'in': location, 'schema': schema}
                         for schema, location in view_func._spec.get('args', [])
