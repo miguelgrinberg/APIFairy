@@ -3,7 +3,7 @@ import unittest
 import pytest
 
 from flask import Flask, Blueprint
-from flask_httpauth import HTTPBasicAuth
+from flask_httpauth import HTTPBasicAuth, HTTPTokenAuth
 from flask_marshmallow import Marshmallow
 from marshmallow import EXCLUDE
 from openapi_spec_validator import validate_spec
@@ -40,13 +40,106 @@ class QuerySchema(ma.Schema):
 
 
 class TestAPIFairy(unittest.TestCase):
-    def create_app(self):
+    def create_app(self, config=None):
         app = Flask(__name__)
         app.config['APIFAIRY_TITLE'] = 'Foo'
         app.config['APIFAIRY_VERSION'] = '1.0'
+        if config:
+            app.config.update(config)
         ma.init_app(app)
         apifairy = APIFairy(app)
         return app, apifairy
+
+    def test_apispec(self):
+        app, apifairy = self.create_app()
+        auth = HTTPBasicAuth()
+
+        @apifairy.process_apispec
+        def edit_apispec(apispec):
+            assert apispec['openapi'] == '3.0.3'
+            apispec['openapi'] = '3.0.2'
+            return apispec
+
+        @auth.verify_password
+        def verify_password(username, password):
+            if username == 'foo' and password == 'bar':
+                return {'user': 'foo'}
+            elif username == 'bar' and password == 'foo':
+                return {'user': 'bar'}
+
+        @auth.get_user_roles
+        def get_roles(user):
+            if user['user'] == 'bar':
+                return 'admin'
+            return 'normal'
+
+        @app.route('/foo')
+        @authenticate(auth)
+        @arguments(QuerySchema)
+        @body(Schema)
+        @response(Schema)
+        @other_responses({404: 'foo not found'})
+        def foo():
+            return {'id': 123, 'name': auth.current_user()['user']}
+
+        client = app.test_client()
+
+        rv = client.get('/apispec.json')
+        assert rv.status_code == 200
+        validate_spec(rv.json)
+        assert rv.json['openapi'] == '3.0.2'
+        assert rv.json['info']['title'] == 'Foo'
+        assert rv.json['info']['version'] == '1.0'
+
+        assert apifairy.apispec is apifairy.apispec
+
+        rv = client.get('/docs')
+        assert rv.status_code == 200
+        assert b'redoc.standalone.js' in rv.data
+
+    def test_custom_apispec_path(self):
+        app, _ = self.create_app(config={'APIFAIRY_APISPEC_PATH': '/foo'})
+
+        client = app.test_client()
+        rv = client.get('/apispec.json')
+        assert rv.status_code == 404
+        rv = client.get('/foo')
+        assert rv.status_code == 200
+        assert set(rv.json.keys()) == {
+            'openapi', 'info', 'servers', 'paths', 'tags'}
+
+    def test_no_apispec_path(self):
+        app, _ = self.create_app(config={'APIFAIRY_APISPEC_PATH': None})
+
+        client = app.test_client()
+        rv = client.get('/apispec.json')
+        assert rv.status_code == 404
+
+    def test_ui(self):
+        app, _ = self.create_app(config={'APIFAIRY_UI': 'swagger_ui'})
+
+        client = app.test_client()
+        rv = client.get('/docs')
+        assert rv.status_code == 200
+        assert b'redoc.standalone.js' not in rv.data
+        assert b'swagger-ui-bundle.js' in rv.data
+
+    def test_custom_ui_path(self):
+        app, _ = self.create_app(config={'APIFAIRY_UI_PATH': '/foo'})
+
+        client = app.test_client()
+        rv = client.get('/docs')
+        assert rv.status_code == 404
+        rv = client.get('/foo')
+        assert rv.status_code == 200
+        assert b'redoc.standalone.js' in rv.data
+
+    def test_no_ui_path(self):
+        app, _ = self.create_app(config={'APIFAIRY_UI_PATH': None})
+
+        client = app.test_client()
+        rv = client.get('/docs')
+        assert rv.status_code == 404
 
     def test_body(self):
         app, _ = self.create_app()
@@ -81,6 +174,28 @@ class TestAPIFairy(unittest.TestCase):
         rv = client.post('/foo', json={'name': 'bar'})
         assert rv.status_code == 200
         assert rv.json == {'name': 'bar'}
+
+    def test_body_custom_error_handler(self):
+        app, apifairy = self.create_app()
+
+        @apifairy.error_handler
+        def error_handler(status_code, messages):
+            return {'errors': messages}, status_code
+
+        @app.route('/foo', methods=['POST'])
+        @body(Schema())
+        def foo(schema):
+            return schema
+
+        client = app.test_client()
+
+        rv = client.post('/foo')
+        assert rv.status_code == 400
+        assert rv.json == {
+            'errors': {
+                'json': {'name': ['Missing data for required field.']}
+            }
+        }
 
     def test_query(self):
         app, _ = self.create_app()
@@ -172,7 +287,7 @@ class TestAPIFairy(unittest.TestCase):
         assert rv.json == {'id': 123, 'name': 'foo'}
         assert 'Location' not in rv.headers
 
-    def test_authenticate(self):
+    def test_basic_auth(self):
         app, _ = self.create_app()
         auth = HTTPBasicAuth()
 
@@ -223,21 +338,25 @@ class TestAPIFairy(unittest.TestCase):
         assert rv.status_code == 200
         assert rv.json == {'user': 'bar'}
 
-    def test_apispec(self):
-        app, apifairy = self.create_app()
-        auth = HTTPBasicAuth()
+        rv = client.get('/apispec.json')
+        assert rv.status_code == 200
+        assert rv.json['components']['securitySchemes'] == {
+            'basic_auth': {'scheme': 'Basic', 'type': 'http'},
+        }
+        assert rv.json['paths']['/foo']['get']['security'] == [
+            {'basic_auth': []}]
+        assert rv.json['paths']['/bar']['get']['security'] == [
+            {'basic_auth': ['admin']}]
 
-        @apifairy.process_apispec
-        def edit_apispec(apispec):
-            assert apispec['openapi'] == '3.0.3'
-            apispec['openapi'] = '3.0.2'
-            return apispec
+    def test_token_auth(self):
+        app, _ = self.create_app()
+        auth = HTTPTokenAuth()
 
-        @auth.verify_password
-        def verify_password(username, password):
-            if username == 'foo' and password == 'bar':
+        @auth.verify_token
+        def verify_token(token):
+            if token == 'foo':
                 return {'user': 'foo'}
-            elif username == 'bar' and password == 'foo':
+            elif token == 'bar':
                 return {'user': 'bar'}
 
         @auth.get_user_roles
@@ -248,27 +367,92 @@ class TestAPIFairy(unittest.TestCase):
 
         @app.route('/foo')
         @authenticate(auth)
-        @arguments(QuerySchema)
-        @body(Schema)
-        @response(Schema)
-        @other_responses({404: 'foo not found'})
         def foo():
-            return {'id': 123, 'name': auth.current_user()['user']}
+            return auth.current_user()
+
+        @app.route('/bar')
+        @authenticate(auth, role='admin')
+        def bar():
+            return auth.current_user()
+
+        client = app.test_client()
+
+        rv = client.get('/foo')
+        assert rv.status_code == 401
+
+        rv = client.get('/foo',
+                        headers={'Authorization': 'Bearer foo'})
+        assert rv.status_code == 200
+        assert rv.json == {'user': 'foo'}
+
+        rv = client.get('/bar',
+                        headers={'Authorization': 'Bearer foo'})
+        assert rv.status_code == 403
+
+        rv = client.get('/foo',
+                        headers={'Authorization': 'Bearer bar'})
+        assert rv.status_code == 200
+        assert rv.json == {'user': 'bar'}
+
+        rv = client.get('/bar',
+                        headers={'Authorization': 'Bearer bar'})
+        assert rv.status_code == 200
+        assert rv.json == {'user': 'bar'}
+
+        rv = client.get('/apispec.json')
+        assert rv.status_code == 200
+        assert rv.json['components']['securitySchemes'] == {
+            'api_key': {'scheme': 'Bearer', 'type': 'http'},
+        }
+        assert rv.json['paths']['/foo']['get']['security'] == [
+            {'api_key': []}]
+        assert rv.json['paths']['/bar']['get']['security'] == [
+            {'api_key': ['admin']}]
+
+    def test_multiple_auth(self):
+        app, _ = self.create_app()
+        auth = HTTPTokenAuth()
+        auth.__doc__ = 'auth documentation'
+        auth2 = HTTPTokenAuth(header='X-Token')
+
+        class MyHTTPTokenAuth(HTTPTokenAuth):
+            """custom auth documentation"""
+            pass
+
+        auth3 = MyHTTPTokenAuth()
+
+        @app.route('/foo')
+        @authenticate(auth)
+        def foo():
+            return auth.current_user()
+
+        @app.route('/bar')
+        @authenticate(auth2)
+        def bar():
+            return auth.current_user()
+
+        @app.route('/baz')
+        @authenticate(auth3)
+        def baz():
+            return auth.current_user()
 
         client = app.test_client()
 
         rv = client.get('/apispec.json')
         assert rv.status_code == 200
-        validate_spec(rv.json)
-        assert rv.json['openapi'] == '3.0.2'
-        assert rv.json['info']['title'] == 'Foo'
-        assert rv.json['info']['version'] == '1.0'
-
-        assert apifairy.apispec is apifairy.apispec
-
-        rv = client.get('/docs')
-        assert rv.status_code == 200
-        assert b'redoc.standalone.js' in rv.data
+        assert rv.json['components']['securitySchemes'] == {
+            'api_key': {'scheme': 'Bearer', 'type': 'http',
+                        'description': 'auth documentation'},
+            'api_key_2': {'type': 'apiKey', 'name': 'X-Token', 'in': 'header'},
+            'api_key_3': {'scheme': 'Bearer', 'type': 'http',
+                          'description': 'custom auth documentation'},
+        }
+        assert rv.json['paths']['/foo']['get']['security'] == [
+            {'api_key': []}]
+        assert rv.json['paths']['/bar']['get']['security'] == [
+            {'api_key_2': []}]
+        assert rv.json['paths']['/baz']['get']['security'] == [
+            {'api_key_3': []}]
 
     def test_apispec_schemas(self):
         app, apifairy = self.create_app()
@@ -288,28 +472,53 @@ class TestAPIFairy(unittest.TestCase):
         def baz():
             pass
 
-        with app.app_context():
+        with app.test_request_context():
             apispec = apifairy.apispec
         assert len(apispec['components']['schemas']) == 3
         assert 'SchemaUpdate' in apispec['components']['schemas']
         assert 'Schema2' in apispec['components']['schemas']
         assert 'Foo' in apispec['components']['schemas']
 
-    def test_apispec_path_summary_from_docs(self):
+    def test_endpoints(self):
         app, apifairy = self.create_app()
 
         @app.route('/users')
         @response(Schema)
         def get_users():
-            """Get Users."""
+            """get users."""
+            pass
+
+        @app.route('/users', methods=['POST', 'PUT'])
+        @response(Schema, status_code=201)
+        def new_user():
+            """new user.
+            modify user.
+            """
             pass
 
         client = app.test_client()
 
         rv = client.get('/apispec.json')
         assert rv.status_code == 200
-        validate_spec(rv.json)
-        assert rv.json['paths']['/users']['get']['summary'] == 'Get Users.'
+
+        assert rv.json['paths']['/users']['get']['operationId'] == 'get_users'
+        assert list(rv.json['paths']['/users']['get']['responses']) == ['200']
+        assert rv.json['paths']['/users']['get']['summary'] == 'get users.'
+        assert 'description' not in rv.json['paths']['/users']['get']
+
+        assert rv.json['paths']['/users']['post']['operationId'] == \
+            'post_new_user'
+        assert list(rv.json['paths']['/users']['post']['responses']) == ['201']
+        assert rv.json['paths']['/users']['post']['summary'] == 'new user.'
+        assert rv.json['paths']['/users']['post']['description'] == \
+            'modify user.'
+
+        assert rv.json['paths']['/users']['put']['operationId'] == \
+            'put_new_user'
+        assert list(rv.json['paths']['/users']['put']['responses']) == ['201']
+        assert rv.json['paths']['/users']['put']['summary'] == 'new user.'
+        assert rv.json['paths']['/users']['put']['description'] == \
+            'modify user.'
 
     def test_apispec_path_parameters_registration(self):
         app, apifairy = self.create_app()

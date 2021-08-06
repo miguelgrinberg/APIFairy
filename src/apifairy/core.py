@@ -32,7 +32,7 @@ class APIFairy:
         self.apispec_callback = None
         self.error_handler_callback = self.default_error_handler
         self._apispec = None
-        if app is not None:
+        if app is not None:  # pragma: no cover
             self.init_app(app)
 
     def init_app(self, app):
@@ -58,7 +58,7 @@ class APIFairy:
                 return render_template(f'apifairy/{self.ui}.html',
                                        title=self.title, version=self.version)
 
-        if self.apispec_path or self.ui_path:
+        if self.apispec_path or self.ui_path:  # pragma: no cover
             app.register_blueprint(bp)
 
         @app.errorhandler(ValidationError)
@@ -163,7 +163,7 @@ class APIFairy:
                         name = 'basic_auth'
                     elif isinstance(auth, HTTPTokenAuth):
                         name = 'api_key'
-                    else:
+                    else:  # pragma: no cover
                         raise RuntimeError('Unknown authentication scheme')
                     if name in auth_names:
                         v = 2
@@ -196,9 +196,6 @@ class APIFairy:
                 }
             if auth.__doc__:
                 security_schemes[name]['description'] = auth.__doc__.strip()
-            elif auth.__class__.__doc__:
-                security_schemes[name]['description'] = \
-                    auth.__class__.__doc__.strip()
         for name, scheme in security_schemes.items():
             spec.components.security_scheme(name, scheme)
 
