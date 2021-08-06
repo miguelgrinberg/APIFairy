@@ -15,6 +15,7 @@ try:
 except ImportError:  # pragma: no cover
     HTTPBasicAuth = None
     HTTPTokenAuth = None
+from werkzeug.http import HTTP_STATUS_CODES
 
 from apifairy.exceptions import ValidationError
 
@@ -226,7 +227,6 @@ class APIFairy:
                 if docs[0]:
                     operation['summary'] = docs[0]
                 if len(docs) > 1:
-                    print(docs)
                     operation['description'] = '\n'.join(docs[1:]).strip()
                 if view_func._spec.get('response'):
                     code = str(view_func._spec['status_code'])
@@ -240,9 +240,11 @@ class APIFairy:
                         }
                     }
                     operation['responses'][code]['description'] = \
-                        view_func._spec['description'] or ''
+                        view_func._spec['description'] or HTTP_STATUS_CODES[
+                            int(code)]
                 else:
-                    operation['responses'] = {'204': {}}
+                    operation['responses'] = {
+                        '204': {'description': HTTP_STATUS_CODES[204]}}
 
                 if view_func._spec.get('other_responses'):
                     for status_code, description in view_func._spec.get(
