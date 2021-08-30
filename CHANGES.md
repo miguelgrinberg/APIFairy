@@ -1,5 +1,9 @@
 # APIFairy Change Log
 
+**Release 0.8.2** - 2021-08-30
+
+- One more change needed to include HTML files in package ([commit](https://github.com/miguelgrinberg/apifairy/commit/7ed49227de57afbd51dbea5bd2b1e24ff12f733f))
+
 **Release 0.8.1** - 2021-08-30
 
 - Add the documentation templates back into the package [#2](https://github.com/miguelgrinberg/apifairy/issues/2) ([commit](https://github.com/miguelgrinberg/apifairy/commit/7e0115cd5706652d7208bfafb8b47e8fe84b5de7))
