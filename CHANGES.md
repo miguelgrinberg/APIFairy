@@ -1,5 +1,9 @@
 # APIFairy Change Log
 
+**Release 0.8.1** - 2021-08-30
+
+- Add the documentation templates back into the package [#2](https://github.com/miguelgrinberg/apifairy/issues/2) ([commit](https://github.com/miguelgrinberg/apifairy/commit/7e0115cd5706652d7208bfafb8b47e8fe84b5de7))
+
 **Release 0.8.0** - 2021-08-07
 
 - Add `servers` section ([commit](https://github.com/miguelgrinberg/apifairy/commit/6d5d614ff0dc9ef7666191f4ca7c9e9139518d99))
