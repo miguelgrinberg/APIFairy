@@ -85,13 +85,35 @@ Configuration
 APIFairy imports its configuration from the Flask configuration object.
 The available options are shown in the table below.
 
-========================= ====== =============== ==============================================================================================
+========================= ====== =============== =======================================================================================================
 Name                      Type   Default         Description
-========================= ====== =============== ==============================================================================================
+========================= ====== =============== =======================================================================================================
 ``APIFAIRY_TITLE``        String No title        The API's title.
 ``APIFAIRY_VERSION``      String No version      The API's version.
 ``APIFAIRY_APISPEC_PATH`` String */apispec.json* The URL path where the JSON OpenAPI specification for this project is served.
-``APIFAIRY_UI``           String redoc           The documentation format to use. Supported formats are "redoc", "rapidoc" and "swagger_ui".
+``APIFAIRY_UI``           String redoc           The documentation format to use. Supported formats are "redoc", "swagger_ui", "rapidoc" and "elements".
 ``APIFAIRY_UI_PATH``      String */docs*         The URL path where the documentation is served.
 ``APIFAIRY_TAGS``         List   ``None``        The list of ordered tags to include in the documentation, if the default order is not optimal.
-========================= ====== =============== ==============================================================================================
+========================= ====== =============== =======================================================================================================
+
+Using a Custom Documentation Endpoint
+-------------------------------------
+
+APIFairy provides templates for a few popular open source OpenAPI documentation renderers:
+
+- ``swagger_ui``: `Swagger UI <https://github.com/swagger-api/swagger-ui>`_
+- ``redoc``: `ReDoc <https://github.com/Redocly/redoc>`_
+- ``rapidoc``: `RapiDoc <https://github.com/mrin9/RapiDoc>`_
+- ``elements``: `Elements <https://github.com/stoplightio/elements>`_
+
+If neither of these work for your project, or if you would like to configure
+any of these differently, you can set the ``APIFAIRY_UI_PATH`` to ``None`` in
+the configuration to disable the default documentation endpoint, and then
+implement your own.
+
+The stock documentation options offered by this package are implemented as
+Jinja2 templates, which you can `view on GitHub <https://github.com/miguelgrinberg/APIFairy/tree/main/src/apifairy/templates/apifairy>`_.
+To implement a custom documentation, just create an endpoint in your Flask
+application and render your own template, using the
+``{{ url_for('apifairy.json') }}`` expression where your documentation
+renderer needs the API specification URL.
