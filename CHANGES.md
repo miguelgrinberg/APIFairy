@@ -1,5 +1,12 @@
 # APIFairy Change Log
 
+**Release 0.9.0** - 2021-12-14
+
+- Better ordering for authentication schemes ([commit](https://github.com/miguelgrinberg/apifairy/commit/a6067f8eeb1fe429935e75c0ca71389caed4754f))
+- Added rapidoc template ([commit](https://github.com/miguelgrinberg/apifairy/commit/ff9a161bc9edfe7e88f1b6f658ea12f2ae91a0e2))
+- Added Elements template ([commit](https://github.com/miguelgrinberg/apifairy/commit/d2ff0543cbf4ed8f293c48b1839445b3deacbf3d))
+- Documented how to create a custom documentation endpoint ([commit](https://github.com/miguelgrinberg/apifairy/commit/47d13793fa06a9f23eca5435478f42b103c980b3))
+
 **Release 0.8.2** - 2021-08-30
 
 - One more change needed to include HTML files in package ([commit](https://github.com/miguelgrinberg/apifairy/commit/7ed49227de57afbd51dbea5bd2b1e24ff12f733f))
