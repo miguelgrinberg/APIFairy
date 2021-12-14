@@ -341,7 +341,7 @@ class TestAPIFairy(unittest.TestCase):
         rv = client.get('/apispec.json')
         assert rv.status_code == 200
         assert rv.json['components']['securitySchemes'] == {
-            'basic_auth': {'scheme': 'Basic', 'type': 'http'},
+            'basic_auth': {'scheme': 'basic', 'type': 'http'},
         }
         assert rv.json['paths']['/foo']['get']['security'] == [
             {'basic_auth': []}]
@@ -402,12 +402,12 @@ class TestAPIFairy(unittest.TestCase):
         rv = client.get('/apispec.json')
         assert rv.status_code == 200
         assert rv.json['components']['securitySchemes'] == {
-            'api_key': {'scheme': 'Bearer', 'type': 'http'},
+            'token_auth': {'scheme': 'bearer', 'type': 'http'},
         }
         assert rv.json['paths']['/foo']['get']['security'] == [
-            {'api_key': []}]
+            {'token_auth': []}]
         assert rv.json['paths']['/bar']['get']['security'] == [
-            {'api_key': ['admin']}]
+            {'token_auth': ['admin']}]
 
     def test_multiple_auth(self):
         app, _ = self.create_app()
@@ -441,18 +441,18 @@ class TestAPIFairy(unittest.TestCase):
         rv = client.get('/apispec.json')
         assert rv.status_code == 200
         assert rv.json['components']['securitySchemes'] == {
-            'api_key': {'scheme': 'Bearer', 'type': 'http',
-                        'description': 'auth documentation'},
-            'api_key_2': {'type': 'apiKey', 'name': 'X-Token', 'in': 'header'},
-            'api_key_3': {'scheme': 'Bearer', 'type': 'http',
-                          'description': 'custom auth documentation'},
+            'token_auth': {'scheme': 'bearer', 'type': 'http',
+                           'description': 'auth documentation'},
+            'token_auth_2': {'scheme': 'bearer', 'type': 'http',
+                             'description': 'custom auth documentation'},
+            'api_key': {'type': 'apiKey', 'name': 'X-Token', 'in': 'header'},
         }
         assert rv.json['paths']['/foo']['get']['security'] == [
-            {'api_key': []}]
+            {'token_auth': []}]
         assert rv.json['paths']['/bar']['get']['security'] == [
-            {'api_key_2': []}]
+            {'api_key': []}]
         assert rv.json['paths']['/baz']['get']['security'] == [
-            {'api_key_3': []}]
+            {'token_auth_2': []}]
 
     def test_apispec_schemas(self):
         app, apifairy = self.create_app()

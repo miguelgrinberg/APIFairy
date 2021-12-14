@@ -162,7 +162,10 @@ class APIFairy:
                     if isinstance(auth, HTTPBasicAuth):
                         name = 'basic_auth'
                     elif isinstance(auth, HTTPTokenAuth):
-                        name = 'api_key'
+                        if auth.scheme == 'Bearer' and auth.header is None:
+                            name = 'token_auth'
+                        else:
+                            name = 'api_key'
                     else:  # pragma: no cover
                         raise RuntimeError('Unknown authentication scheme')
                     if name in auth_names:
@@ -181,7 +184,7 @@ class APIFairy:
                 if auth.scheme == 'Bearer' and auth.header is None:
                     security_schemes[name] = {
                         'type': 'http',
-                        'scheme': 'Bearer',
+                        'scheme': 'bearer',
                     }
                 else:
                     security_schemes[name] = {
@@ -192,12 +195,14 @@ class APIFairy:
             else:
                 security_schemes[name] = {
                     'type': 'http',
-                    'scheme': 'Basic',
+                    'scheme': 'basic',
                 }
             if auth.__doc__:
                 security_schemes[name]['description'] = auth.__doc__.strip()
-        for name, scheme in security_schemes.items():
-            spec.components.security_scheme(name, scheme)
+        for prefix in ['basic_auth', 'token_auth', 'api_key']:
+            for name, scheme in security_schemes.items():
+                if name.startswith(prefix):
+                    spec.components.security_scheme(name, scheme)
 
         # paths
         paths = {}
