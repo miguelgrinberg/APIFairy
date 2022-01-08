@@ -268,7 +268,8 @@ class APIFairy:
                             'application/json': {
                                 'schema': view_func._spec['body'],
                             }
-                        }
+                        },
+                        'required': True,
                     }
 
                 if view_func._spec.get('auth'):
