@@ -1,5 +1,10 @@
 # APIFairy Change Log
 
+**Release 0.9.1** - 2022-01-11
+
+- Mark request body as required when `@body` decorator is used [#37](https://github.com/miguelgrinberg/apifairy/issues/37) ([commit](https://github.com/miguelgrinberg/apifairy/commit/5558b240cf0697fd6da875fdb7b98b76eb6d2d30))
+- Set page title in rapidoc and elements templates ([commit](https://github.com/miguelgrinberg/apifairy/commit/95352b1c430183166a77459983190894c6596122))
+
 **Release 0.9.0** - 2021-12-14
 
 - Better ordering for authentication schemes ([commit](https://github.com/miguelgrinberg/apifairy/commit/a6067f8eeb1fe429935e75c0ca71389caed4754f))
