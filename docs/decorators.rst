@@ -166,9 +166,8 @@ Advanced Usage
 
 The ``body`` decorator is a thin wrapper around the ``use_args`` decorator
 from the `webargs <https://webargs.readthedocs.io/>`_ project with
-the ``location`` argument set to ``json``. Any additional options are passed
-directly into ``use_args``, which among other things allow the use of form
-data as input instead of JSON.
+the ``location`` argument set to ``json`` or ``form``. Any additional options
+are passed directly into ``use_args``.
 
 @response
 ---------
