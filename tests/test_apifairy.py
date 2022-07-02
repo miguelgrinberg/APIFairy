@@ -585,11 +585,18 @@ class TestAPIFairy(unittest.TestCase):
             pass
 
         @app.route('/users', methods=['POST', 'PUT'])
+        @body(FormSchema, location='form')
         @response(Schema, status_code=201)
         def new_user():
             """new user.
             modify user.
             """
+            pass
+
+        @app.route('/upload', methods=['POST'])
+        @body(FormUploadSchema, location='form')
+        def upload():
+            """upload file."""
             pass
 
         client = app.test_client()
@@ -608,6 +615,8 @@ class TestAPIFairy(unittest.TestCase):
         assert rv.json['paths']['/users']['post']['summary'] == 'new user.'
         assert rv.json['paths']['/users']['post']['description'] == \
             'modify user.'
+        assert 'application/x-www-form-urlencoded' in \
+            rv.json['paths']['/users']['post']['requestBody']['content']
 
         assert rv.json['paths']['/users']['put']['operationId'] == \
             'put_new_user'
@@ -615,6 +624,14 @@ class TestAPIFairy(unittest.TestCase):
         assert rv.json['paths']['/users']['put']['summary'] == 'new user.'
         assert rv.json['paths']['/users']['put']['description'] == \
             'modify user.'
+
+        assert rv.json['paths']['/upload']['post']['operationId'] == 'upload'
+        assert list(rv.json['paths']['/upload']['post']['responses']) == \
+            ['204']
+        assert rv.json['paths']['/upload']['post']['summary'] == 'upload file.'
+        assert 'description' not in rv.json['paths']['/upload']['post']
+        assert 'multipart/form-data' in \
+            rv.json['paths']['/upload']['post']['requestBody']['content']
 
     def test_apispec_path_parameters_registration(self):
         app, apifairy = self.create_app()

@@ -269,14 +269,14 @@ class APIFairy:
 
                 if view_func._spec.get('body'):
                     schema = view_func._spec.get('body')[0]
-                    has_file = False
-                    for field in schema.dump_fields.values():
-                        if isinstance(field, apifairy_fields.FileField):
-                            has_file = True
-                            break
                     location = view_func._spec.get('body')[1]
                     media_type = 'application/json'
                     if location == 'form':
+                        has_file = False
+                        for field in schema.dump_fields.values():
+                            if isinstance(field, apifairy_fields.FileField):
+                                has_file = True
+                                break
                         media_type = 'application/x-www-form-urlencoded' \
                             if not has_file else 'multipart/form-data'
                     operation['requestBody'] = {
