@@ -10,6 +10,10 @@ from apifairy.exceptions import ValidationError
 class FlaskParser(BaseFlaskParser):
     DEFAULT_VALIDATION_STATUS = 400
 
+    def load_form(self, req, schema):
+        return {**self.load_files(req, schema),
+                **super().load_form(req, schema)}
+
     def handle_error(self, error, req, schema, *, error_status_code,
                      error_headers):
         raise ValidationError(
@@ -64,14 +68,14 @@ def arguments(schema, location='query', **kwargs):
     return decorator
 
 
-def body(schema, **kwargs):
+def body(schema, location='json', **kwargs):
     if isinstance(schema, type):  # pragma: no cover
         schema = schema()
 
     def decorator(f):
         f = _ensure_sync(f)
-        _annotate(f, body=schema)
-        return use_args(schema, location='json', **kwargs)(f)
+        _annotate(f, body=(schema, location))
+        return use_args(schema, location=location, **kwargs)(f)
     return decorator
 
 

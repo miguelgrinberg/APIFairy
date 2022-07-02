@@ -1,3 +1,4 @@
+from io import BytesIO
 import sys
 import unittest
 import pytest
@@ -9,7 +10,7 @@ from marshmallow import EXCLUDE
 from openapi_spec_validator import validate_spec
 
 from apifairy import APIFairy, body, arguments, response, authenticate, \
-    other_responses
+    other_responses, FileField
 
 ma = Marshmallow()
 
@@ -37,6 +38,17 @@ class FooSchema(ma.Schema):
 
 class QuerySchema(ma.Schema):
     id = ma.Integer(missing=1)
+
+
+class FormSchema(ma.Schema):
+    csrf = ma.Str(required=True)
+    name = ma.Str(required=True)
+    age = ma.Int()
+
+
+class FormUploadSchema(ma.Schema):
+    name = ma.Str()
+    file = FileField(required=True)
 
 
 class TestAPIFairy(unittest.TestCase):
@@ -175,6 +187,90 @@ class TestAPIFairy(unittest.TestCase):
         assert rv.status_code == 200
         assert rv.json == {'name': 'bar'}
 
+    def test_body_form(self):
+        app, _ = self.create_app()
+
+        @app.route('/form', methods=['POST'])
+        @body(FormSchema(), location='form')
+        def foo(schema):
+            return schema
+
+        client = app.test_client()
+
+        rv = client.post('/form')
+        assert rv.status_code == 400
+        assert rv.json == {
+            'messages': {
+                'form': {
+                    'csrf': ['Missing data for required field.'],
+                    'name': ['Missing data for required field.'],
+                }
+            }
+        }
+
+        rv = client.post('/form', data={'csrf': 'foo', 'age': '12'})
+        assert rv.status_code == 400
+        assert rv.json == {
+            'messages': {
+                'form': {'name': ['Missing data for required field.']}
+            }
+        }
+
+        rv = client.post('/form', data={'csrf': 'foo', 'name': 'bar'})
+        assert rv.status_code == 200
+        assert rv.json == {'csrf': 'foo', 'name': 'bar'}
+
+        rv = client.post('/form', data={'csrf': 'foo', 'name': 'bar',
+                                        'age': '12'})
+        assert rv.status_code == 200
+        assert rv.json == {'csrf': 'foo', 'name': 'bar', 'age': 12}
+
+    def test_body_form_upload(self):
+        app, _ = self.create_app()
+
+        @app.route('/form', methods=['POST'])
+        @body(FormUploadSchema(), location='form')
+        def foo(schema):
+            return {'name': schema.get('name'),
+                    'len': len(schema['file'].read())}
+
+        client = app.test_client()
+
+        rv = client.post('/form')
+        assert rv.status_code == 400
+        assert rv.json == {
+            'messages': {
+                'form': {'file': ['Missing data for required field.']}
+            }
+        }
+
+        rv = client.post('/form', data={'name': 'foo'},
+                         content_type='multipart/form-data')
+        assert rv.status_code == 400
+        assert rv.json == {
+            'messages': {
+                'form': {'file': ['Missing data for required field.']}
+            }
+        }
+
+        rv = client.post('/form', data={'file': 'foo'},
+                         content_type='multipart/form-data')
+        assert rv.status_code == 400
+        assert rv.json == {
+            'messages': {
+                'form': {'file': ['Not a file.']}
+            }
+        }
+
+        rv = client.post('/form', data={'name': 'foo',
+                                        'file': (BytesIO(b'bar'), 'test.txt')})
+        assert rv.status_code == 200
+        assert rv.json == {'name': 'foo', 'len': 3}
+
+        rv = client.post('/form', data={'file': (BytesIO(b'bar'), 'test.txt')})
+        assert rv.status_code == 200
+        assert rv.json == {'name': None, 'len': 3}
+
     def test_body_custom_error_handler(self):
         app, apifairy = self.create_app()
 
@@ -275,12 +371,12 @@ class TestAPIFairy(unittest.TestCase):
         rv = client.get('/baz?id=2')
         assert rv.status_code == 201
         assert rv.json == {'id': 123, 'name': 'foo'}
-        assert rv.headers['Location'] == 'http://localhost/baz'
+        assert rv.headers['Location'] in ['http://localhost/baz', '/baz']
 
         rv = client.get('/baz?id=3')
         assert rv.status_code == 202
         assert rv.json == {'id': 123, 'name': 'foo'}
-        assert rv.headers['Location'] == 'http://localhost/baz'
+        assert rv.headers['Location'] in ['http://localhost/baz', '/baz']
 
         rv = client.get('/baz?id=4')
         assert rv.status_code == 201

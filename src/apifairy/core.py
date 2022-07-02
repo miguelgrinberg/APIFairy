@@ -18,6 +18,7 @@ except ImportError:  # pragma: no cover
 from werkzeug.http import HTTP_STATUS_CODES
 
 from apifairy.exceptions import ValidationError
+from apifairy import fields as apifairy_fields
 
 
 class APIFairy:
@@ -146,9 +147,13 @@ class APIFairy:
         ma_plugin.converter.field_mapping[fields.URLFor] = ('string', 'url')
         ma_plugin.converter.field_mapping[fields.AbsoluteURLFor] = \
             ('string', 'url')
-        if sqla is not None:
+        if sqla is not None:  # pragma: no cover
             ma_plugin.converter.field_mapping[sqla.HyperlinkRelated] = \
                 ('string', 'url')
+
+        # configure FileField
+        ma_plugin.converter.field_mapping[apifairy_fields.FileField] = \
+            ('string', 'binary')
 
         # security schemes
         auth_schemes = []
@@ -263,10 +268,21 @@ class APIFairy:
                             {'description': description}
 
                 if view_func._spec.get('body'):
+                    schema = view_func._spec.get('body')[0]
+                    has_file = False
+                    for field in schema.dump_fields.values():
+                        if isinstance(field, apifairy_fields.FileField):
+                            has_file = True
+                            break
+                    location = view_func._spec.get('body')[1]
+                    media_type = 'application/json'
+                    if location == 'form':
+                        media_type = 'application/x-www-form-urlencoded' \
+                            if not has_file else 'multipart/form-data'
                     operation['requestBody'] = {
                         'content': {
-                            'application/json': {
-                                'schema': view_func._spec['body'],
+                            media_type: {
+                                'schema': schema,
                             }
                         },
                         'required': True,

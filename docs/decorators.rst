@@ -98,8 +98,8 @@ locations for input arguments besides the query string.
 @body
 -----
 
-The ``body`` decorator defines the structure of the JSON body of the request.
-The only required argument to this decorator is the schema definition for the
+The ``body`` decorator defines the structure of the body of the request. The
+only required argument to this decorator is the schema definition for the
 request body, which can be given as a schema class or instance::
 
     from apifairy import body
@@ -125,6 +125,41 @@ argument. Note that Flask passes path arguments as keyword arguments, so the
 argument from this decorator must be defined first. When multiple input
 decorators are used, the positional arguments are given in the same order as
 the decorators.
+
+Forms
+~~~~~
+
+This decorator can also be used to configure an endpoint to accept form data,
+by adding the optional ``location`` argument set to ``form``::
+
+    from apifairy import body
+
+    class UserSchema(ma.Schema):
+        id = ma.Int()
+        username = ma.Str(required=True)
+        email = ma.Str(required=True)
+        about_me = ma.Str(missing='')
+
+    @app.route('/users', methods=['POST'])
+    @body(UserSchema, location='form')
+    def create_user(user):
+        # ...
+
+File uploads can be declared with the ``FileField`` field type, which returns
+a standard ``FileStorage`` object from Flask::
+
+    from apifairy import body
+    from apifairy.fields import FileField
+
+    class UserSchema(ma.Schema):
+        id = ma.Int()
+        username = ma.Str(required=True)
+        avatar = FileField()
+
+    @app.route('/users', methods=['POST'])
+    @body(UserSchema, location='form')
+    def create_user(user):
+        # ...
 
 Advanced Usage
 ~~~~~~~~~~~~~~
