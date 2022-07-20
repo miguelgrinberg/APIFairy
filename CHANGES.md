@@ -1,5 +1,11 @@
 # APIFairy Change Log
 
+**Release 0.9.2** - 2022-07-20
+
+- Form and file upload support [#35](https://github.com/miguelgrinberg/apifairy/issues/35) ([commit](https://github.com/miguelgrinberg/apifairy/commit/59dfb3c252119beb982adef2346c76592ef14528))
+- Additional unit testing coverage ([commit](https://github.com/miguelgrinberg/apifairy/commit/407cf6ba724b6f4c5b90bae8685fee0697f16146))
+- Add Python 3.10 and PyPy 3.8 to builds ([commit](https://github.com/miguelgrinberg/apifairy/commit/66ad682d602f2551d0f075678b63b3f338ec6a28))
+
 **Release 0.9.1** - 2022-01-11
 
 - Mark request body as required when `@body` decorator is used [#37](https://github.com/miguelgrinberg/apifairy/issues/37) ([commit](https://github.com/miguelgrinberg/apifairy/commit/5558b240cf0697fd6da875fdb7b98b76eb6d2d30))
