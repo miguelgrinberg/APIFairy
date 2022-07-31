@@ -5,7 +5,7 @@ Each endpoints summarry will by default be named by the view functions name. Thi
 - If the docstring has more that one line, it will form both the summary and overall discription of that enpoint/method.
 
 
-.. image:: _static/comment_doc.png
+.. image:: _static/comment_docs.png
   :width: 100%
   :alt: Automatic documentation example
 
