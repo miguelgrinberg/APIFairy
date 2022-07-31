@@ -11,7 +11,4 @@ Each endpoints summary will, by default, be named with the view functions name. 
   :width: 100%
   :alt: Automatic documentation example
 
-.. image:: _static/view.png
-  :width: 100%
-  :alt: Automatic documentation example
 
