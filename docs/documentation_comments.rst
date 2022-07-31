@@ -13,6 +13,7 @@ Each endpoints summary will, by default, be named with the view functions name. 
 
 
 ```
+
 @posts_blueprint.route('/posts/<int:id>', methods=['PUT'])
 @authenticate(token_auth)
 @response(users_schema)
@@ -21,4 +22,5 @@ def all_users():
        This is an example of the documentation you can add for each view function
     """
     return Users.select()
+    
 ```
