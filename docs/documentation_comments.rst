@@ -7,10 +7,13 @@ Each endpoints summary will, by default, be named with the view functions name. 
 - If the docstring has only one line this will become the summary of each endpoint/method.
 - If the docstring has more that one line, it will form both the summary and overall discription of that enpoint/method.
 
+
 .. image:: _static/comment_docs.png
   :width: 100%
   :alt: Automatic documentation example
 
+Example view:
+-------------
 
     @posts_blueprint.route('/posts/<int:id>', methods=['PUT'])
     @authenticate(token_auth)
