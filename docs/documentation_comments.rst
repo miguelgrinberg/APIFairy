@@ -12,8 +12,8 @@ Each endpoints summary will, by default, be named with the view functions name. 
   :width: 100%
   :alt: Automatic documentation example
 
-Example view:
--------------
+
+.. code-block:: python
 
     @posts_blueprint.route('/posts/<int:id>', methods=['PUT'])
     @authenticate(token_auth)
@@ -24,9 +24,3 @@ Example view:
         """
         return Users.select()
     
-
-```
-function test() {
-  console.log("notice the blank line before this function?");
-}
-```
