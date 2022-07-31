@@ -15,3 +15,4 @@ Flask.
    intro
    decorators
    apifairy_class
+   documentation_comments
