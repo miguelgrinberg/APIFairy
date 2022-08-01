@@ -13,5 +13,6 @@ Flask.
    :maxdepth: 2
 
    intro
+   guide
    decorators
    apifairy_class

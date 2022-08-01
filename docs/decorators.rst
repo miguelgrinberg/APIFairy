@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Decorators
-==========
+Decorator Reference
+===================
 
 The core functionality of APIFairy is accessed through its five decorators,
 which are used to define what the inputs and outputs of each endpoint are.

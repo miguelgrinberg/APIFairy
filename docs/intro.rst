@@ -39,9 +39,9 @@ APIFairy decorators::
 APIFairy's decorators are simple wrappers for existing solutions. In the
 example above, ``token_auth`` is an intialized authentication object from the
 Flask-HTTPAuth extension, and ``post_schema`` and ``update_post_schema`` are
-Flask-Marshmallow schema objects. These wrappers allow APIFairy to
-automatically generate documentation using the OpenAPI 3.x standard. Below is a
-screenshot of the documentation for the above endpoint:
+Flask-Marshmallow schema objects. Using the decorator wrappers allow APIFairy
+to automatically generate documentation using the OpenAPI 3.x standard. Below
+is a screenshot of the documentation for the above endpoint:
 
 .. image:: _static/apispec-example.png
   :width: 100%
@@ -93,7 +93,7 @@ Name                      Type   Default         Description
 ``APIFAIRY_APISPEC_PATH`` String */apispec.json* The URL path where the JSON OpenAPI specification for this project is served.
 ``APIFAIRY_UI``           String redoc           The documentation format to use. Supported formats are "redoc", "swagger_ui", "rapidoc" and "elements".
 ``APIFAIRY_UI_PATH``      String */docs*         The URL path where the documentation is served.
-``APIFAIRY_TAGS``         List   ``None``        The list of ordered tags to include in the documentation, if the default order is not optimal.
+``APIFAIRY_TAGS``         List   ``None``        A list of tags to include in the documentation, in the desired order.
 ========================= ====== =============== =======================================================================================================
 
 Using a Custom Documentation Endpoint
