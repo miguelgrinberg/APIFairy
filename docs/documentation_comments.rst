@@ -53,8 +53,28 @@ There may be a situation where you crease a custom decorator for you view to fac
         return User.select()
         
 In this situation you can add a docstring to the schema that is passed to the decorator and this will append to the endpoints comments. 
-        
-    
+
+This could be helpful to add additional information regarding the `paginated response` and it would append the documentation for all endpoints with that decorator.
+
+ 
+
+Commenting individual query parameters
+-------------------------------
+
+If you wish to comment individual query parameters then you are able to do so by adding to the metadata of each field in the Marshmallow schema.
+
+A small example is shown below.
+
+.. code-block:: python
+
+  class FilterUserSchema(ma.Schema): 
+      class Meta:
+          ordered = True
+      email = ma.String()
+      email.metadata["description"] = "Accepts operators [GT] [LT] [GTE] [LTE]"
+ 
+
+
 Commenting individual path parameters
 -------------------------------
 
