@@ -1,5 +1,5 @@
 
-Commenting API Documentation
+Commenting API
 ===============
 
 Title & Version No
