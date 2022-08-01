@@ -39,6 +39,21 @@ Each endpoint's summary (short text associated to each endpoint) will, by defaul
            This is an example of the documentation you can add for each view function
         """
         return Users.select()
+        
+Custom Decorators
+------------------
+
+There may be a situation where you creaste a custom decorator for you view to facilitate pagination or similar.
+
+.. code-block:: python
+
+    @users.route('/users', methods=['GET'])
+    @paginated_response(users_schema)
+    def all():       
+        return User.select()
+        
+In this situation you can add a docstring to the schema that is passed to the decorator and this will append to the endpoints comments. 
+        
     
 Commenting individual path parameters
 -------------------------------
@@ -53,7 +68,7 @@ If your view function accepts parameters, these will form the path parameters of
   | - with bullet points
   | - and any other formatting like links
   |
-  | You can fine more information on markdown here [Github Markdown](https://docs.github.com/en/get-started/writing-on-github/getting-started-with- writing-and-formatting-on-github/basic-writing-and-formatting-syntax#links)
+  | You can find more information on markdown here [Github Markdown](https://docs.github.com/en/get-started/writing-on-github/getting-started-with- writing-and-formatting-on-github/basic-writing-and-formatting-syntax#links)
   |
   | id:: This is an example of how you can comment individual path parameters id--  
 
