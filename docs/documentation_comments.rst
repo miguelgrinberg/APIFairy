@@ -45,7 +45,7 @@ Commenting individual path parameters
 
 If your view function accepts parameters, these will form the path parameters of that endpoint, there may be a case where you wish to comment individual params. In this case as above, add these to the docstring in the following format.
 
-.. code-block:: python
+.. code-block::
     """Retrieve a user by id
     ## Returns a single user by id
     ### it also accepts markdown text
