@@ -18,7 +18,6 @@ except ImportError:  # pragma: no cover
 from werkzeug.http import HTTP_STATUS_CODES
 
 from apifairy.exceptions import ValidationError
-from apifairy import fields as apifairy_fields
 
 
 class APIFairy:
@@ -147,13 +146,9 @@ class APIFairy:
         ma_plugin.converter.field_mapping[fields.URLFor] = ('string', 'url')
         ma_plugin.converter.field_mapping[fields.AbsoluteURLFor] = \
             ('string', 'url')
-        if sqla is not None:  # pragma: no cover
+        if sqla is not None:
             ma_plugin.converter.field_mapping[sqla.HyperlinkRelated] = \
                 ('string', 'url')
-
-        # configure FileField
-        ma_plugin.converter.field_mapping[apifairy_fields.FileField] = \
-            ('string', 'binary')
 
         # security schemes
         auth_schemes = []
@@ -242,7 +237,18 @@ class APIFairy:
                 if docs[0]:
                     operation['summary'] = docs[0]
                 if len(docs) > 1:
-                    operation['description'] = '\n'.join(docs[1:]).strip()
+                    # to add comments to each path path parameter, you now need to add to the docstring of the view
+                    # function, this function removes them
+                    operation['description'] = remove_args_comments(rule.rule, '\n'.join(docs[1:]).strip())
+                    # this will check the current view functions custom decorators for docstrings and also add to the
+                    # endpoints documentation
+                    args = view_func._spec.get("args")
+                    if args:
+                        additional_docs = [x[0].__doc__ for x in view_func._spec["args"] if x[-1] == 'query' and not x[0].__doc__ is None]
+                        if additional_docs:
+                            for additional in additional_docs:
+                                operation["description"] += "\n" + additional
+
                 if view_func._spec.get('response'):
                     code = str(view_func._spec['status_code'])
                     operation['responses'] = {
@@ -268,21 +274,10 @@ class APIFairy:
                             {'description': description}
 
                 if view_func._spec.get('body'):
-                    schema = view_func._spec.get('body')[0]
-                    location = view_func._spec.get('body')[1]
-                    media_type = 'application/json'
-                    if location == 'form':
-                        has_file = False
-                        for field in schema.dump_fields.values():
-                            if isinstance(field, apifairy_fields.FileField):
-                                has_file = True
-                                break
-                        media_type = 'application/x-www-form-urlencoded' \
-                            if not has_file else 'multipart/form-data'
                     operation['requestBody'] = {
                         'content': {
-                            media_type: {
-                                'schema': schema,
+                            'application/json': {
+                                'schema': view_func._spec['body'],
                             }
                         },
                         'required': True,
@@ -295,14 +290,23 @@ class APIFairy:
                     }]
                 operations[method.lower()] = operation
 
-            path_arguments = re.findall(r'<(([^<:]+:)?([^>]+))>', rule.rule)
+            path_arguments = get_path_args(rule.rule)
             if path_arguments:
                 arguments = []
+                # get the doc string from the view function
+                doc = view_func.__doc__
                 for _, type, name in path_arguments:
+                    
                     argument = {
                         'in': 'path',
-                        'name': name,
+                        'name': name
                     }
+                    # get path comments for this view by checking the docstring for the functions input params and pulling from the docstring
+                    check_name = f"{name}::"
+                    check_name_end = f"{name}--"
+                    if check_name in doc:
+                        argument["description"] = doc[doc.find(check_name) + len(check_name):doc.find(check_name_end)].strip()
+
                     if type == 'int:':
                         argument['schema'] = {'type': 'integer'}
                     elif type == 'float:':
@@ -329,3 +333,17 @@ class APIFairy:
             spec.path(path=path, operations=sorted_operations)
 
         return spec
+
+def get_path_args(rule):
+    return re.findall(r'<(([^<:]+:)?([^>]+))>', rule)
+
+def remove_args_comments(rule, doc):
+    """removes the functions param comments from the docstring"""
+
+    path_args = get_path_args(rule)
+    new_doc = doc
+    for _, type, name in path_args:
+        check_name = f"{name}::"
+        check_name_end = f"{name}--"
+        doc = doc[:doc.find(check_name)] + doc[doc.find(check_name_end)+len(check_name_end):]
+    return doc
