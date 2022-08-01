@@ -73,7 +73,7 @@ If your view function accepts parameters, these will form the path parameters of
   | id:: This is an example of how you can comment individual path parameters id--  
 
 
-It will format you endpoint in the following manor
+It will format you endpoint in the following manor, notice how the last line is moved to the `Path Parameters` id field.
 
 
 .. image:: _static/markdown.png
