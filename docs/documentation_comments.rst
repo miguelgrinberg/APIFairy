@@ -40,3 +40,22 @@ Each endpoint's summary (short text associated to each endpoint) will, by defaul
         """
         return Users.select()
     
+Commenting individual path parameters
+-------------------------------
+
+If your view function accepts parameters, these will form the path parameters of that endpoint, there may be a case where you wish to comment individual params. In this case as above, add these to the docstring in the following format.
+
+"""Retrieve a user by id
+## Returns a single user by id
+### it also accepts markdown text
+> so you can format this how you like
+- with bullet points
+- and any other formatting like links
+
+You can fine more information on markdown here [Github Markdown](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#links)
+
+id:: This is an example of how you can comment individual path parameters id--
+
+"""
+
+It will format you endpoint in the following manor
