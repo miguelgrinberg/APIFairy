@@ -115,27 +115,27 @@ class APIFairy:
         servers = [{'url': request.url_root}]
 
         # tags
-        tags = self.tags
-        if tags is None:
+        tag_names = self.tags
+        if tag_names is None:
             # auto-generate tags from blueprints
-            blueprints = []
+            tag_names = []
             for rule in current_app.url_map.iter_rules():
                 view_func = current_app.view_functions[rule.endpoint]
                 if hasattr(view_func, '_spec'):
                     if '.' in rule.endpoint:
                         blueprint = rule.endpoint.rsplit('.', 1)[0]
-                        if blueprint not in blueprints:
-                            blueprints.append(blueprint)
-            tags = []
-            for name, blueprint in current_app.blueprints.items():
-                if name not in blueprints:
-                    continue
-                module = sys.modules[blueprint.import_name]
-                tag = {'name': name.title()}
-                if module.__doc__:
-                    tag['description'] = module.__doc__.strip()
-                tags.append(tag)
-
+                        if blueprint not in tag_names:
+                            tag_names.append(blueprint)
+        tags = {}
+        for name, blueprint in current_app.blueprints.items():
+            if name not in tag_names:
+                continue
+            module = sys.modules[blueprint.import_name]
+            tag = {'name': name.title()}
+            if module.__doc__:
+                tag['description'] = module.__doc__.strip()
+            tags[name] = tag
+        tag_list = [tags[name] for name in tag_names]
         ma_plugin = MarshmallowPlugin(schema_name_resolver=resolver)
         spec = APISpec(
             title=self.title,
@@ -144,7 +144,7 @@ class APIFairy:
             plugins=[ma_plugin],
             info=info,
             servers=servers,
-            tags=tags,
+            tags=tag_list,
         )
 
         # configure flask-marshmallow URL types
