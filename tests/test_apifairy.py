@@ -1,5 +1,9 @@
 from io import BytesIO
 import sys
+try:
+    from typing import Annotated
+except ImportError:
+    Annotated = None
 import unittest
 import pytest
 
@@ -633,7 +637,7 @@ class TestAPIFairy(unittest.TestCase):
         assert 'multipart/form-data' in \
             rv.json['paths']['/upload']['post']['requestBody']['content']
 
-    def test_apispec_path_parameters_registration(self):
+    def test_apispec_path_parameters(self):
         app, apifairy = self.create_app()
 
         @app.route('/strings/<some_string>')
@@ -646,15 +650,27 @@ class TestAPIFairy(unittest.TestCase):
         def get_float(some_float: float):
             pass
 
-        @app.route('/integers/<int:some_integer>', methods=['PUT'])
-        @response(Schema)
-        def get_integer(some_integer):
-            pass
+        if Annotated:
+            @app.route('/integers/<int:some_integer>', methods=['PUT'])
+            @response(Schema)
+            def get_integer(some_integer: Annotated[int, 1,
+                                                    'some_integer docs']):
+                pass
 
-        @app.route('/users/<int:user_id>/articles/<int:article_id>')
-        @response(Schema)
-        def get_article(user_id, article_id):
-            pass
+            @app.route('/users/<int:user_id>/articles/<int:article_id>')
+            @response(Schema)
+            def get_article(user_id: Annotated[int, 1], article_id):
+                pass
+        else:
+            @app.route('/integers/<int:some_integer>', methods=['PUT'])
+            @response(Schema)
+            def get_integer(some_integer: 'some_integer docs'):  # noqa: F722
+                pass
+
+            @app.route('/users/<int:user_id>/articles/<int:article_id>')
+            @response(Schema)
+            def get_article(user_id, article_id):
+                pass
 
         client = app.test_client()
 
@@ -682,15 +698,23 @@ class TestAPIFairy(unittest.TestCase):
 
         assert rv.json['paths']['/integers/{some_integer}'][
             'put']['parameters'][0]['in'] == 'path'
-        assert 'description' not in rv.json['paths'][
-            '/integers/{some_integer}']['put']['parameters'][0]
+        assert rv.json['paths']['/integers/{some_integer}'][
+            'put']['parameters'][0]['description'] == 'some_integer docs'
         assert rv.json['paths']['/integers/{some_integer}'][
             'put']['parameters'][0]['schema']['type'] == 'integer'
 
         assert rv.json['paths']['/users/{user_id}/articles/{article_id}'][
+            'get']['parameters'][0]['in'] == 'path'
+        assert rv.json['paths']['/users/{user_id}/articles/{article_id}'][
             'get']['parameters'][0]['name'] == 'user_id'
+        assert 'description' not in rv.json['paths'][
+            '/users/{user_id}/articles/{article_id}']['get']['parameters'][0]
+        assert rv.json['paths']['/users/{user_id}/articles/{article_id}'][
+            'get']['parameters'][1]['in'] == 'path'
         assert rv.json['paths']['/users/{user_id}/articles/{article_id}'][
             'get']['parameters'][1]['name'] == 'article_id'
+        assert 'description' not in rv.json['paths'][
+            '/users/{user_id}/articles/{article_id}']['get']['parameters'][1]
 
     def test_path_arguments_detection(self):
         app, apifairy = self.create_app()

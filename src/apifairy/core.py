@@ -1,6 +1,10 @@
 from json import dumps
 import re
 import sys
+try:
+    from typing import _AnnotatedAlias
+except ImportError:  # pragma: no cover
+    _AnnotatedAlias = None
 
 from apispec import APISpec
 from apispec.ext.marshmallow import MarshmallowPlugin
@@ -312,6 +316,12 @@ class APIFairy:
                         argument['schema'] = {'type': 'string'}
                     if isinstance(annotations.get(name), str):
                         argument['description'] = annotations[name]
+                    elif _AnnotatedAlias and \
+                            isinstance(annotations.get(name), _AnnotatedAlias):
+                        for annotation in annotations[name].__metadata__:
+                            if isinstance(annotation, str):
+                                argument['description'] = annotation
+                                break
                     arguments.append(argument)
 
                 for method, operation in operations.items():
