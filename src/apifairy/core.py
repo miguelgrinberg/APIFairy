@@ -297,6 +297,7 @@ class APIFairy:
 
             path_arguments = re.findall(r'<(([^<:]+:)?([^>]+))>', rule.rule)
             if path_arguments:
+                annotations = view_func.__annotations__ or {}
                 arguments = []
                 for _, type, name in path_arguments:
                     argument = {
@@ -309,6 +310,8 @@ class APIFairy:
                         argument['schema'] = {'type': 'number'}
                     else:
                         argument['schema'] = {'type': 'string'}
+                    if isinstance(annotations.get(name), str):
+                        argument['description'] = annotations[name]
                     arguments.append(argument)
 
                 for method, operation in operations.items():

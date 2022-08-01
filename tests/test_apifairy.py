@@ -638,12 +638,12 @@ class TestAPIFairy(unittest.TestCase):
 
         @app.route('/strings/<some_string>')
         @response(Schema)
-        def get_string(some_string):
+        def get_string(some_string: 'some_string docs'):  # noqa: F722
             pass
 
         @app.route('/floats/<float:some_float>', methods=['POST'])
         @response(Schema)
-        def get_float(some_float):
+        def get_float(some_float: float):
             pass
 
         @app.route('/integers/<int:some_integer>', methods=['PUT'])
@@ -661,16 +661,32 @@ class TestAPIFairy(unittest.TestCase):
         rv = client.get('/apispec.json')
         assert rv.status_code == 200
         validate_spec(rv.json)
+
         assert rv.json['paths']['/strings/{some_string}'][
             'get']['parameters'][0]['in'] == 'path'
+        assert rv.json['paths']['/strings/{some_string}'][
+            'get']['parameters'][0]['description'] == 'some_string docs'
         assert rv.json['paths']['/strings/{some_string}'][
             'get']['parameters'][0]['name'] == 'some_string'
         assert rv.json['paths']['/strings/{some_string}'][
             'get']['parameters'][0]['schema']['type'] == 'string'
+
+        assert rv.json['paths']['/floats/{some_float}'][
+            'post']['parameters'][0]['in'] == 'path'
+        assert 'description' not in rv.json['paths']['/floats/{some_float}'][
+            'post']['parameters'][0]
         assert rv.json['paths']['/floats/{some_float}'][
             'post']['parameters'][0]['schema']['type'] == 'number'
+        assert rv.json['paths']['/floats/{some_float}'][
+            'post']['parameters'][0]['schema']['type'] == 'number'
+
+        assert rv.json['paths']['/integers/{some_integer}'][
+            'put']['parameters'][0]['in'] == 'path'
+        assert 'description' not in rv.json['paths'][
+            '/integers/{some_integer}']['put']['parameters'][0]
         assert rv.json['paths']['/integers/{some_integer}'][
             'put']['parameters'][0]['schema']['type'] == 'integer'
+
         assert rv.json['paths']['/users/{user_id}/articles/{article_id}'][
             'get']['parameters'][0]['name'] == 'user_id'
         assert rv.json['paths']['/users/{user_id}/articles/{article_id}'][
