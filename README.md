@@ -6,6 +6,9 @@ APIFairy is a minimalistic API framework built on top of Flask, and with the
 support of Marshmallow schemas. Using a familiar decorator syntax you can
 generate a live documentation site directly from your source code.
 
+Check out [Microblog-API](https://github.com/miguelgrinberg/microblog-api) to
+see APIFairy in action in a non-trivial project.
+
 ![APIFairy example](docs/_static/apispec-example.png)
 
 Resources
