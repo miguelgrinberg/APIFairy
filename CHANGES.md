@@ -1,5 +1,12 @@
 # APIFairy Change Log
 
+**Release 1.0.0** - 2022-08-02
+
+- Document path parameters with string annotations ([commit](https://github.com/miguelgrinberg/apifairy/commit/4cade08b60ba4336fcfaf01e63b3ad4b72a8fccc))
+- Support for `typing.Annotated` in path parameter documentation ([commit](https://github.com/miguelgrinberg/apifairy/commit/aa090a0a1d06c298f81efaa3d0b10a844097caae))
+- Correct handling of custom blueprint ordering ([commit](https://github.com/miguelgrinberg/apifairy/commit/1ac7938c5c1288da953231818e567fe740b65ba6))
+- Documentation on how to add manually written documentation ([commit](https://github.com/miguelgrinberg/apifairy/commit/5bfda7e62891b84dfbd63ecaef83bc4191c99272))
+
 **Release 0.9.2** - 2022-07-20
 
 - Form and file upload support [#35](https://github.com/miguelgrinberg/apifairy/issues/35) ([commit](https://github.com/miguelgrinberg/apifairy/commit/59dfb3c252119beb982adef2346c76592ef14528))
