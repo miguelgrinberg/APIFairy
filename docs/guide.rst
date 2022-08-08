@@ -1,7 +1,7 @@
 Documenting your API with APIFairy
 ==================================
 
-APIFary can discover and document your API through its
+APIFairy can discover and document your API through its
 :ref:`decorators <Decorator Reference>`, but in most cases you'll want to
 complement automatically generated documentation with manually written notes.
 The following sections describe all the places where APIFairy looks for text to
@@ -14,8 +14,8 @@ The title and version of your project are defined in the Flask configuration
 object::
 
     app = Flask(__name__)
-    app.config['APIFARY_TITLE'] = 'My API Project'
-    app.config['APIFARY_VERSION'] = '1.0'
+    app.config['APIFAIRY_TITLE'] = 'My API Project'
+    app.config['APIFAIRY_VERSION'] = '1.0'
 
 Project Overview
 ----------------
@@ -56,8 +56,8 @@ The contents of *api/app.py* are::
 
     def create_app():
         app = Flask(__name__)
-        app.config['APIFARY_TITLE'] = 'My API Project'
-        app.config['APIFARY_VERSION'] = '1.0'
+        app.config['APIFAIRY_TITLE'] = 'My API Project'
+        app.config['APIFAIRY_VERSION'] = '1.0'
         apifairy.init_app(app)
         return app
 
@@ -88,8 +88,8 @@ Documentation can then be added at the top of this file, as follows::
 
     def create_app():
         app = Flask(__name__)
-        app.config['APIFARY_TITLE'] = 'My API Project'
-        app.config['APIFARY_VERSION'] = '1.0'
+        app.config['APIFAIRY_TITLE'] = 'My API Project'
+        app.config['APIFAIRY_VERSION'] = '1.0'
         apifairy.init_app(app)
         return app
 
