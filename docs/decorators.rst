@@ -243,3 +243,47 @@ If the roles feature of Flask-HTTPAuth is used, the documentation will include
 the required role(s) for each endpoint. Any keyword arguments given to the
 ``authenticate`` decorator, including the ``role`` argument, are passed
 through to Flask-HTTPAuth.
+
+@headers
+----------
+
+The ``headers`` decorator specifies input HTTP headers. The only argument
+this decorator requires is the schema definition for the headers,
+which can be given as a schema class or instance::
+
+    from apifairy import headers
+
+    class IdHeadersSchema(ma.Schema):
+       context_id = ma.Str(missing=None, required=True)
+       correlation_id = ma.Str(missing=None)
+
+
+    @app.route('/users', methods=['POST'])
+    @headers(IdHeadersSchema)
+    @body(UserSchema)
+    @response(UserSchema, status_code=201, description='A user was created.')
+    def create_user(id_headers: dict, user):
+        print(id_headers['context_id'])
+        # ...
+
+
+The decorator will deserialize and validate the input data and will only
+invoke the view function when the arguments are valid. In the case of a
+validation error, the error handler is invoked to generate an error response
+to the client.
+
+The deserialized input data is passed to the view function as a positional
+argument. When multiple input decorators are used (e.g. headers and body),
+the positional arguments are given in the same order as the decorators.
+
+Optionally, you can pass the headers as kwargs to the view function
+by setting ``as_kwargs`` to True in the decorator::
+
+
+    @app.route('/users', methods=['POST'])
+    @headers(IdHeadersSchema, as_kwargs=True)
+    @body(UserSchema)
+    @response(UserSchema, status_code=201, description='A user was created.')
+    def create_user(user, **kwargs):
+        print(kwargs['context_id'])
+        # ...
