@@ -14,7 +14,7 @@ from marshmallow import EXCLUDE
 from openapi_spec_validator import validate_spec
 
 from apifairy import APIFairy, body, arguments, response, authenticate, \
-    other_responses, FileField
+    other_responses, FileField, headers
 
 ma = Marshmallow()
 
@@ -38,6 +38,15 @@ class Schema2(ma.Schema):
 class FooSchema(ma.Schema):
     id = ma.Integer(default=123)
     name = ma.Str()
+
+
+class OptionalHeaderSchema(ma.Schema):
+    optional_header = ma.Str(default=None)
+
+
+class HeaderSchema(ma.Schema):
+    optional_header = ma.Str(default=None)
+    required_header = ma.Str(required=True)
 
 
 class QuerySchema(ma.Schema):
@@ -91,6 +100,7 @@ class TestAPIFairy(unittest.TestCase):
 
         @app.route('/foo')
         @authenticate(auth)
+        @headers(OptionalHeaderSchema)
         @arguments(QuerySchema)
         @body(Schema)
         @response(Schema)
@@ -156,6 +166,42 @@ class TestAPIFairy(unittest.TestCase):
         client = app.test_client()
         rv = client.get('/docs')
         assert rv.status_code == 404
+
+    def test_headers(self):
+        app, _ = self.create_app()
+
+        @app.route('/foo', methods=['POST'])
+        @headers(HeaderSchema())
+        def foo(schema):
+            return schema
+
+        client = app.test_client()
+
+        rv = client.post('/foo')
+        assert rv.status_code == 400
+        assert rv.json == {
+            'messages': {
+                'headers': {'required_header': ['Missing data for required field.']}
+            }
+        }
+
+        rv = client.post('/foo', headers={'id': 1})
+        assert rv.status_code == 400
+        assert rv.json == {
+            'messages': {
+                'headers': {'required_header': ['Missing data for required field.']}
+            }
+        }
+
+        rv = client.post('/foo', headers={'optional_header': 'foo',
+                                          'required_header': 'bar'})
+        assert rv.status_code == 200
+        assert rv.json == {'optional_header': 'foo',
+                           'required_header': 'bar'}
+
+        rv = client.post('/foo', headers={'required_header': 'bar'})
+        assert rv.status_code == 200
+        assert rv.json == {'required_header': 'bar'}
 
     def test_body(self):
         app, _ = self.create_app()
@@ -822,11 +868,12 @@ class TestAPIFairy(unittest.TestCase):
 
         @app.route('/foo', methods=['POST'])
         @authenticate(auth)
+        @headers(OptionalHeaderSchema)
         @arguments(QuerySchema)
         @body(Schema)
         @response(Schema)
         @other_responses({404: 'foo not found'})
-        async def foo(query, body):
+        async def foo(headers, query, body):
             return {'id': query['id'], 'name': auth.current_user()['user']}
 
         client = app.test_client()
@@ -848,17 +895,20 @@ class TestAPIFairy(unittest.TestCase):
         assert rv.status_code == 401
 
         rv = client.post(
-            '/foo', headers={'Authorization': 'Basic Zm9vOmJhcg=='})
+            '/foo', headers={'Authorization': 'Basic Zm9vOmJhcg==',
+                             'optional_header': 'foo'})
         assert rv.json['messages']['json']['name'] == \
             ['Missing data for required field.']
         assert rv.status_code == 400
 
         rv = client.post('/foo', json={'name': 'john'},
-                         headers={'Authorization': 'Basic Zm9vOmJhcg=='})
+                         headers={'Authorization': 'Basic Zm9vOmJhcg==',
+                                  'optional_header': 'foo'})
         assert rv.status_code == 200
         assert rv.json == {'id': 1, 'name': 'foo'}
 
         rv = client.post('/foo?id=2', json={'name': 'john'},
-                         headers={'Authorization': 'Basic Zm9vOmJhcg=='})
+                         headers={'Authorization': 'Basic Zm9vOmJhcg==',
+                                  'optional_header': 'foo'})
         assert rv.status_code == 200
         assert rv.json == {'id': 2, 'name': 'foo'}
