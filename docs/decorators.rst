@@ -254,7 +254,7 @@ which can be given as a schema class or instance::
     from apifairy import headers
 
     class IdHeadersSchema(ma.Schema):
-       context_id = ma.Str(missing=None, required=True)
+       context_id = ma.Str(required=True)
        correlation_id = ma.Str(missing=None)
 
 
