@@ -235,7 +235,9 @@ class APIFairy:
                     'operationId': operation_id,
                     'parameters': [
                         {'in': location, 'schema': schema}
-                        for schema, location in view_func._spec.get('args', [])
+                        for schema, location
+                        in [*view_func._spec.get('args', []),
+                            *view_func._spec.get('headers', [])]
                         if location != 'body'
                     ],
                 }

@@ -79,6 +79,19 @@ def body(schema, location='json', **kwargs):
     return decorator
 
 
+def headers(schema, location='headers', **kwargs):
+    if isinstance(schema, type):
+        schema = schema()
+
+    def decorator(f):
+        f = _ensure_sync(f)
+        if not hasattr(f, '_spec') or f._spec.get('headers') is None:
+            _annotate(f, headers=[])
+        f._spec['headers'].append((schema, location))
+        return use_args(schema, location=location, **kwargs)(f)
+    return decorator
+
+
 def response(schema, status_code=200, description=None):
     if isinstance(schema, type):  # pragma: no cover
         schema = schema()
