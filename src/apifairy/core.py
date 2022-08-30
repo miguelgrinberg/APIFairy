@@ -52,16 +52,10 @@ class APIFairy:
         bp = Blueprint('apifairy', __name__, template_folder='templates')
 
         if self.apispec_path:
-            @bp.route(self.apispec_path)
-            def json():
-                return dumps(self.apispec), 200, \
-                    {'Content-Type': 'application/json'}
+            bp.add_url_rule(self.apispec_path, 'json', self.render_json)
 
         if self.ui_path:
-            @bp.route(self.ui_path)
-            def docs():
-                return render_template(f'apifairy/{self.ui}.html',
-                                       title=self.title, version=self.version)
+            bp.add_url_rule(self.ui_path, 'docs', self.render_docs)
 
         if self.apispec_path or self.ui_path:  # pragma: no cover
             app.register_blueprint(bp)
@@ -70,6 +64,15 @@ class APIFairy:
         def http_error(error):
             return self.error_handler_callback(error.status_code,
                                                error.messages)
+
+    def render_docs(self):
+        return render_template(f'apifairy/{self.ui}.html',
+                               title=self.title, version=self.version)
+
+    def render_json(self):
+        return dumps(self.apispec), 200, {'Content-Type': 'application/json'}
+        
+    def render_docs(self)
 
     def process_apispec(self, f):
         self.apispec_callback = f
