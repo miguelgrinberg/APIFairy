@@ -6,7 +6,7 @@
 Decorator Reference
 ===================
 
-The core functionality of APIFairy is accessed through its five decorators,
+The core functionality of APIFairy is accessed through its six decorators,
 which are used to define what the inputs and outputs of each endpoint are.
 
 @arguments
@@ -211,6 +211,25 @@ code::
     @app.route('/users/<int:id>')
     @response(UserSchema)
     @other_responses({400: 'Invalid request.', 404: 'User not found.'})
+    def get_user(id):
+        # ...
+
+This decorator does not perform any action other than adding the additional
+responses to the documentation.
+
+@other_reponse
+--------------
+Similar to `@other_respnses` can be used to annotate other responses that might
+be returned from the endpoint. The arguments are the same as for the `@response`
+decorator - schema, status_code and optional description
+code::
+
+    from apifairy import response, other_response
+
+    @app.route('/users/<int:id>')
+    @response(UserSchema)
+    @other_response(UnauthorizedSchema, 401)
+    @other_response(FailureSchema, 500, 'Server could not connect to DB')
     def get_user(id):
         # ...
 
