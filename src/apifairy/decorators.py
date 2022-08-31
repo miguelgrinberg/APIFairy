@@ -43,6 +43,17 @@ def _annotate(f, **kwargs):
     for key, value in kwargs.items():
         f._spec[key] = value
 
+def _annotate_response(f, status_code, response, description):
+    if not hasattr(f, '_spec'):
+        f._spec = {}
+    if f._spec.get('responses'):
+        f._spec['responses'].update(
+            {status_code: {'response': response, 'description': description}}
+        )
+    else:
+        f._spec['responses'] = {
+            status_code: {'response': response, 'description': description}
+        }
 
 def authenticate(auth, **kwargs):
     def decorator(f):
@@ -85,7 +96,7 @@ def response(schema, status_code=200, description=None):
 
     def decorator(f):
         f = _ensure_sync(f)
-        _annotate(f, response=schema, status_code=status_code,
+        _annotate_response(f, response=schema, status_code=status_code,
                   description=description)
 
         @wraps(f)
@@ -115,6 +126,20 @@ def response(schema, status_code=200, description=None):
 def other_responses(responses):
     def decorator(f):
         f = _ensure_sync(f)
-        _annotate(f, other_responses=responses)
+        for status_code, description in responses.items():
+            _annotate_response(f, response=None, status_code=status_code,
+                          description=description)
+        return f
+    return decorator
+
+
+def other_response(schema, status_code=400, description=None):
+    if isinstance(schema, type):  # pragma: no cover
+        schema = schema()
+
+    def decorator(f):
+        f = _ensure_sync(f)
+        _annotate_response(f, response=schema, status_code=status_code,
+                  description=description)
         return f
     return decorator
