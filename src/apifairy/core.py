@@ -247,29 +247,25 @@ class APIFairy:
                     operation['summary'] = docs[0]
                 if len(docs) > 1:
                     operation['description'] = '\n'.join(docs[1:]).strip()
-                if view_func._spec.get('response'):
-                    code = str(view_func._spec['status_code'])
-                    operation['responses'] = {
-                        code: {
-                            'content': {
-                                'application/json': {
-                                    'schema': view_func._spec.get('response')
-                                }
-                            }
-                        }
-                    }
-                    operation['responses'][code]['description'] = \
-                        view_func._spec['description'] or HTTP_STATUS_CODES[
-                            int(code)]
-                else:
-                    operation['responses'] = {
-                        '204': {'description': HTTP_STATUS_CODES[204]}}
 
-                if view_func._spec.get('other_responses'):
-                    for status_code, description in view_func._spec.get(
-                            'other_responses').items():
-                        operation['responses'][status_code] = \
-                            {'description': description}
+                if view_func._spec.get('responses'):
+                    operation['responses'] = {}
+                    for status_code, info in view_func._spec.get(
+                            'responses').items():
+
+                        operation['responses'][status_code] = {
+                            'description': HTTP_STATUS_CODES[status_code]
+                        }
+                        if info.get('response'):
+                            operation['responses'][status_code]['content'] = \
+                                {
+                                    'application/json': {
+                                        'schema': info.get('response')
+                                    }
+                                }
+                        if info.get('description'):
+                            operation['responses'][status_code]['description'] = \
+                                info.get('description')
 
                 if view_func._spec.get('body'):
                     schema = view_func._spec.get('body')[0]
