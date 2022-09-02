@@ -45,23 +45,32 @@ class APIFairy:
         self.version = app.config.get('APIFAIRY_VERSION', 'No version')
         self.apispec_path = app.config.get('APIFAIRY_APISPEC_PATH',
                                            '/apispec.json')
+        self.apispec_decorators = app.config.get(
+            'APIFAIRY_APISPEC_DECORATORS', [])
         self.ui = app.config.get('APIFAIRY_UI', 'redoc')
         self.ui_path = app.config.get('APIFAIRY_UI_PATH', '/docs')
+        self.ui_decorators = app.config.get('APIFAIRY_UI_DECORATORS', [])
         self.tags = app.config.get('APIFAIRY_TAGS')
 
         bp = Blueprint('apifairy', __name__, template_folder='templates')
 
         if self.apispec_path:
-            @bp.route(self.apispec_path)
             def json():
                 return dumps(self.apispec), 200, \
                     {'Content-Type': 'application/json'}
 
+            for decorator in self.apispec_decorators:
+                json = decorator(json)
+            bp.add_url_rule(self.apispec_path, 'json', json)
+
         if self.ui_path:
-            @bp.route(self.ui_path)
             def docs():
                 return render_template(f'apifairy/{self.ui}.html',
                                        title=self.title, version=self.version)
+
+            for decorator in self.ui_decorators:
+                docs = decorator(docs)
+            bp.add_url_rule(self.ui_path, 'docs', docs)
 
         if self.apispec_path or self.ui_path:  # pragma: no cover
             app.register_blueprint(bp)

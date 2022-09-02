@@ -7,7 +7,7 @@ except ImportError:
 import unittest
 import pytest
 
-from flask import Flask, Blueprint
+from flask import Flask, Blueprint, request, session, abort
 from flask_httpauth import HTTPBasicAuth, HTTPTokenAuth
 from flask_marshmallow import Marshmallow
 from marshmallow import EXCLUDE
@@ -156,6 +156,38 @@ class TestAPIFairy(unittest.TestCase):
         client = app.test_client()
         rv = client.get('/docs')
         assert rv.status_code == 404
+
+    def test_apispec_ui_decorators(self):
+        def auth(f):
+            def wrapper(*args, **kwargs):
+                if request.headers.get('X-Token') != 'foo' and \
+                        session.get('X-Token') != 'foo':
+                    abort(401)
+                return f(*args, **kwargs)
+            return wrapper
+
+        def more_auth(f):
+            def wrapper(*args, **kwargs):
+                if request.headers.get('X-Key') != 'bar':
+                    abort(401)
+                session['X-Token'] = 'foo'
+                return f(*args, **kwargs)
+            return wrapper
+
+        app, apifairy = self.create_app(config={
+            'APIFAIRY_APISPEC_DECORATORS': [auth],
+            'APIFAIRY_UI_DECORATORS': [auth, more_auth]})
+        app.secret_key = 'secret'
+
+        client = app.test_client()
+        rv = client.get('/apispec.json')
+        assert rv.status_code == 401
+        rv = client.get('/docs')
+        assert rv.status_code == 401
+        rv = client.get('/apispec.json', headers={'X-Token': 'foo'})
+        assert rv.status_code == 200
+        rv = client.get('/docs', headers={'X-Key': 'bar'})
+        assert rv.status_code == 200
 
     def test_body(self):
         app, _ = self.create_app()
