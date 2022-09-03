@@ -275,10 +275,29 @@ class APIFairy:
                         '204': {'description': HTTP_STATUS_CODES[204]}}
 
                 if view_func._spec.get('other_responses'):
-                    for status_code, description in view_func._spec.get(
+                    for status_code, response in view_func._spec.get(
                             'other_responses').items():
-                        operation['responses'][status_code] = \
-                            {'description': description}
+                        if not isinstance(response, (tuple, list)):
+                            response = (response,)
+                        operation['responses'][status_code] = {}
+                        for r in response:
+                            if isinstance(r, str):
+                                operation['responses'][status_code][
+                                    'description'] = r
+                            else:
+                                if isinstance(r, type):
+                                    r = r()  # instantiate the schema
+                                operation['responses'][status_code][
+                                    'content'] = {
+                                        'application/json': {
+                                            'schema': r
+                                        }
+                                    }
+                        if 'description' not in operation['responses'][
+                                status_code]:
+                            operation['responses'][status_code][
+                                'description'] = HTTP_STATUS_CODES[
+                                    int(status_code)]
 
                 if view_func._spec.get('body'):
                     schema = view_func._spec.get('body')[0]
@@ -312,14 +331,14 @@ class APIFairy:
             if path_arguments:
                 annotations = view_func.__annotations__ or {}
                 arguments = []
-                for _, type, name in path_arguments:
+                for _, type_, name in path_arguments:
                     argument = {
                         'in': 'path',
                         'name': name,
                     }
-                    if type == 'int:':
+                    if type_ == 'int:':
                         argument['schema'] = {'type': 'integer'}
-                    elif type == 'float:':
+                    elif type_ == 'float:':
                         argument['schema'] = {'type': 'number'}
                     else:
                         argument['schema'] = {'type': 'string'}

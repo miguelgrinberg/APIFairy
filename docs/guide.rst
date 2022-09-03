@@ -223,18 +223,60 @@ Documentation that is specific to a schema field can be added in a
 Responses
 ---------
 
-A text description for an endpoint's response can be provided in a
-``description`` argument to the ``@response`` decorator. Descriptions for the
-error responses can be given to the ``@other_responses`` decorator by passing
-a dictionary where the keys are the response status codes and the values are
-the descriptions.
+In addition to the schema documentation, an endpoint response can be given a
+text description in a ``description`` argument to the ``@response`` decorator.
 
 Example::
 
     @tokens.route('/tokens', methods=['PUT'])
     @body(token_schema)
     @response(token_schema, description='Newly issued access and refresh tokens')
-    @other_responses({401: 'Invalid access or refresh token'})
+    def refresh(args):
+        """Refresh an access token"""
+        ...
+
+Error Responses
+---------------
+
+The ``@other_responses`` decorator takes a dictionary argument, where the keys
+are the response status codes and the values provide the documentation.
+
+To add text descriptions to these responses, set the value for each status code
+to a descrition string.
+
+Example::
+
+    @tokens.route('/tokens', methods=['PUT'])
+    @body(token_schema)
+    @response(token_schema, description='Newly issued access and refresh tokens')
+    @other_responses({401: 'Invalid access or refresh token',
+                      403: 'Insufficient permissions'})
+    def refresh(args):
+        """Refresh an access token"""
+        ...
+
+
+To document the error response with a schema, set the value to the schema
+instance.
+
+Example::
+
+    @tokens.route('/tokens', methods=['PUT'])
+    @body(token_schema)
+    @response(token_schema, description='Newly issued access and refresh tokens')
+    @other_responses({401: invalid_token_schema,
+                      403: insufficient_permissions_schema})
+    def refresh(args):
+        """Refresh an access token"""
+        ...
+
+A schema and a description can both be given as a tuple::
+
+    @tokens.route('/tokens', methods=['PUT'])
+    @body(token_schema)
+    @response(token_schema, description='Newly issued access and refresh tokens')
+    @other_responses({401: (invalid_token_schema, 'Invalid access or refresh token'),
+                      403: (insufficient_permissions_schema, 'Insufficient permissions')})
     def refresh(args):
         """Refresh an access token"""
         ...

@@ -623,6 +623,10 @@ class TestAPIFairy(unittest.TestCase):
         @app.route('/users', methods=['POST', 'PUT'])
         @body(FormSchema, location='form')
         @response(Schema, status_code=201)
+        @other_responses({400: (Schema2, 'bad request'),
+                          401: ('unauthorized', FooSchema()),
+                          403: 'forbidden',
+                          404: Schema2(many=True)})
         def new_user():
             """new user.
             modify user.
@@ -647,7 +651,8 @@ class TestAPIFairy(unittest.TestCase):
 
         assert rv.json['paths']['/users']['post']['operationId'] == \
             'post_new_user'
-        assert list(rv.json['paths']['/users']['post']['responses']) == ['201']
+        assert list(rv.json['paths']['/users']['post']['responses']) == \
+            ['201', '400', '401', '403', '404']
         assert rv.json['paths']['/users']['post']['summary'] == 'new user.'
         assert rv.json['paths']['/users']['post']['description'] == \
             'modify user.'
@@ -656,7 +661,8 @@ class TestAPIFairy(unittest.TestCase):
 
         assert rv.json['paths']['/users']['put']['operationId'] == \
             'put_new_user'
-        assert list(rv.json['paths']['/users']['put']['responses']) == ['201']
+        assert list(rv.json['paths']['/users']['put']['responses']) == \
+            ['201', '400', '401', '403', '404']
         assert rv.json['paths']['/users']['put']['summary'] == 'new user.'
         assert rv.json['paths']['/users']['put']['description'] == \
             'modify user.'
@@ -668,6 +674,57 @@ class TestAPIFairy(unittest.TestCase):
         assert 'description' not in rv.json['paths']['/upload']['post']
         assert 'multipart/form-data' in \
             rv.json['paths']['/upload']['post']['requestBody']['content']
+
+        r201 = {
+            'content': {
+                'application/json': {
+                    'schema': {'$ref': '#/components/schemas/Schema'}
+                }
+            },
+            'description': 'Created'
+        }
+        assert rv.json['paths']['/users']['post']['responses']['201'] == r201
+        assert rv.json['paths']['/users']['put']['responses']['201'] == r201
+
+        r400 = {
+            'content': {
+                'application/json': {
+                    'schema': {'$ref': '#/components/schemas/Schema2'}
+                }
+            },
+            'description': 'bad request'
+        }
+        assert rv.json['paths']['/users']['post']['responses']['400'] == r400
+        assert rv.json['paths']['/users']['put']['responses']['400'] == r400
+
+        r401 = {
+            'content': {
+                'application/json': {
+                    'schema': {'$ref': '#/components/schemas/Foo'}
+                }
+            },
+            'description': 'unauthorized'
+        }
+        assert rv.json['paths']['/users']['post']['responses']['401'] == r401
+        assert rv.json['paths']['/users']['put']['responses']['401'] == r401
+
+        r403 = {'description': 'forbidden'}
+        assert rv.json['paths']['/users']['post']['responses']['403'] == r403
+        assert rv.json['paths']['/users']['put']['responses']['403'] == r403
+
+        r404 = {
+            'content': {
+                'application/json': {
+                    'schema': {
+                        'items': {'$ref': '#/components/schemas/Schema2'},
+                        'type': 'array'
+                    }
+                }
+            },
+            'description': 'Not Found'
+        }
+        assert rv.json['paths']['/users']['post']['responses']['404'] == r404
+        assert rv.json['paths']['/users']['put']['responses']['404'] == r404
 
     def test_apispec_path_parameters(self):
         app, apifairy = self.create_app()

@@ -203,8 +203,8 @@ description of this response to be added to the documentation::
 The ``other_responses`` decorator is used to specify additional responses the
 endpoint can return, usually as a result of an error condition. The only
 argument to this decorator is a dictionary with the keys set to numeric HTTP
-status codes, and the values set to the description text for each response
-code::
+status codes. In its simplest form, the values of the dictionary are strings
+that describe each response::
 
     from apifairy import response, other_responses
 
@@ -214,8 +214,29 @@ code::
     def get_user(id):
         # ...
 
-This decorator does not perform any action other than adding the additional
-responses to the documentation.
+If desired a schema can be provided for each response instead::
+
+    from apifairy import response, other_responses
+
+    @app.route('/users/<int:id>')
+    @response(UserSchema)
+    @other_responses({400: BadRequestSchema, 404: UserNotFoundSchema})
+    def get_user(id):
+        # ...
+
+Finally, a schema and a description can both be given as a tuple::
+
+    from apifairy import response, other_responses
+
+    @app.route('/users/<int:id>')
+    @response(UserSchema)
+    @other_responses({400: (BadRequestSchema, 'Invalid request.'),
+                      404: (UserNotFoundSchema, 'User not found.')})
+    def get_user(id):
+        # ...
+
+This decorator does not perform any validation or formatting of error
+responses, it just adds the information provided to the documentation.
 
 @authenticate
 -------------
