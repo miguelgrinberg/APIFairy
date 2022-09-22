@@ -1,5 +1,13 @@
 # APIFairy Change Log
 
+**Release 1.1.0** - 2022-09-22
+
+- Optional schema for error responses listed in the `@other_responses` decorator [#60](https://github.com/miguelgrinberg/apifairy/issues/60) ([commit](https://github.com/miguelgrinberg/apifairy/commit/e7164b2fada8666e1748fbd06cd78fed7b8d8867))
+- Optional decorators to apply to the apispec and documentation endpoints [#58](https://github.com/miguelgrinberg/apifairy/issues/58) ([commit](https://github.com/miguelgrinberg/apifairy/commit/f9b037d7654691ac39850c311cf5759a0a42a1ab))
+- Fixing some typos in documentation [#53](https://github.com/miguelgrinberg/apifairy/issues/53) ([commit](https://github.com/miguelgrinberg/apifairy/commit/972eb76d9494aceb0ca9d159a3d2ebf59f7e0603)) (thanks **GustavMauler**!)
+- Add link to Microblog API example in readme ([commit](https://github.com/miguelgrinberg/apifairy/commit/6bcdf2ff74008b37aab0f723343469713a6998fb))
+- Updated readme with a screenshot ([commit](https://github.com/miguelgrinberg/apifairy/commit/71d9e96a3abd34b6e528ab43679ac2b781c66dbe))
+
 **Release 1.0.0** - 2022-08-02
 
 - Document path parameters with string annotations ([commit](https://github.com/miguelgrinberg/apifairy/commit/4cade08b60ba4336fcfaf01e63b3ad4b72a8fccc))
