@@ -270,6 +270,14 @@ class APIFairy:
                     operation['responses'][code]['description'] = \
                         view_func._spec['description'] or HTTP_STATUS_CODES[
                             int(code)]
+                    if view_func._spec.get('response_headers'):
+                        schema = view_func._spec.get('response_headers')
+                        if isinstance(schema, type):  # pragma: no branch
+                            schema = schema()
+                        headers = ma_plugin.converter.schema2parameters(
+                            schema, location='headers')
+                        operation['responses'][code]['headers'] = {
+                            header['name']: header for header in headers}
                 else:
                     operation['responses'] = {
                         '204': {'description': HTTP_STATUS_CODES[204]}}

@@ -188,8 +188,9 @@ desired. Markdown formatting is also supported by most OpenAPI renderers.
 Schemas
 -------
 
-Marshmallow schemas are automatically documented by APIFairy, including field
-types and validation requirements. 
+Many of the :ref:`APIFairy decorators <Decorator Reference>` accept Marshmallow
+schemas as arguments. These schemas are automatically documented, including
+their field types and validation requirements.
 
 If the application wants to provide additional information, a schema
 description can be provided in the ``description`` field of the schema's
@@ -220,6 +221,49 @@ Documentation that is specific to a schema field can be added in a
                                  validate=validate.Length(min=3, max=64),
                                  description="The user's username.")
 
+Query String
+------------
+
+APIFairy will automatically document query string parameters for endpoints that
+use the :ref:`@arguments` decorator::
+
+    @users.route('/users', methods=['GET'])
+    @arguments(pagination_schema)
+    @response(users_schema)
+    def get_users(pagination):
+        """Retrieve all users"""
+        # ...
+
+Request Headers
+---------------
+
+APIFairy also documents request headers that are declared with the
+:ref:`@arguments` decorator. Note that this decorator defaults to the query
+string, but the `location` argument can be set to `headers` when needed.
+
+Example::
+
+    class HeadersSchema(ma.Schema):
+        x_token = ma.String(data_key='X-Token', required=True)
+
+    @users.route('/users', methods=['GET'])
+    @arguments(HeadersSchema, location='headers')
+    @response(users_schema)
+    def get_users(headers):
+        """Retrieve all users"""
+        # ...
+
+The ``@arguments`` decorator can be given twice when an endpoint needs query
+string and header arguments both::
+
+    @users.route('/users', methods=['GET'])
+    @arguments(PaginationSchema)
+    @arguments(HeadersSchema, location='headers')
+    @response(users_schema)
+    def all(pagination, headers):
+        """Retrieve all users"""
+        # ...
+
 Responses
 ---------
 
@@ -231,6 +275,19 @@ Example::
     @tokens.route('/tokens', methods=['PUT'])
     @body(token_schema)
     @response(token_schema, description='Newly issued access and refresh tokens')
+    def refresh(args):
+        """Refresh an access token"""
+        ...
+
+For endpoints that return information in response headers, the ``headers``
+argument can be used to add these to the documentation::
+
+    class HeadersSchema(ma.Schema):
+        x_token = ma.String(data_key='X-Token')
+
+    @tokens.route('/tokens', methods=['PUT'])
+    @body(token_schema)
+    @response(token_schema, headers=HeadersSchema)
     def refresh(args):
         """Refresh an access token"""
         ...

@@ -79,14 +79,14 @@ def body(schema, location='json', **kwargs):
     return decorator
 
 
-def response(schema, status_code=200, description=None):
+def response(schema, status_code=200, description=None, headers=None):
     if isinstance(schema, type):  # pragma: no cover
         schema = schema()
 
     def decorator(f):
         f = _ensure_sync(f)
         _annotate(f, response=schema, status_code=status_code,
-                  description=description)
+                  description=description, response_headers=headers)
 
         @wraps(f)
         def _response(*args, **kwargs):

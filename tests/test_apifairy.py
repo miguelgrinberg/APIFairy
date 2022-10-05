@@ -55,6 +55,10 @@ class FormUploadSchema(ma.Schema):
     file = FileField(required=True)
 
 
+class HeaderSchema(ma.Schema):
+    x_token = ma.Str(data_key='X-Token', required=True)
+
+
 class TestAPIFairy(unittest.TestCase):
     def create_app(self, config=None):
         app = Flask(__name__)
@@ -639,6 +643,12 @@ class TestAPIFairy(unittest.TestCase):
             """upload file."""
             pass
 
+        @app.route('/tokens', methods=['POST'])
+        @response(Schema, headers=HeaderSchema)
+        def token():
+            """get a token."""
+            pass
+
         client = app.test_client()
 
         rv = client.get('/apispec.json')
@@ -674,6 +684,16 @@ class TestAPIFairy(unittest.TestCase):
         assert 'description' not in rv.json['paths']['/upload']['post']
         assert 'multipart/form-data' in \
             rv.json['paths']['/upload']['post']['requestBody']['content']
+
+        assert rv.json['paths']['/tokens']['post']['operationId'] == 'token'
+        assert list(rv.json['paths']['/tokens']['post']['responses']) == \
+            ['200']
+        assert rv.json['paths']['/tokens']['post']['summary'] == 'get a token.'
+        assert 'description' not in rv.json['paths']['/tokens']['post']
+        assert 'headers' in \
+            rv.json['paths']['/tokens']['post']['responses']['200']
+        assert 'X-Token' in \
+            rv.json['paths']['/tokens']['post']['responses']['200']['headers']
 
         r201 = {
             'content': {
