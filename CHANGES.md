@@ -1,5 +1,9 @@
 # APIFairy Change Log
 
+**Release 1.2.0** - 2022-10-06
+
+- Documentation of request and response headers [#63](https://github.com/miguelgrinberg/apifairy/issues/63) ([commit](https://github.com/miguelgrinberg/apifairy/commit/c2a9ec2cc5608f5c26c30428d964b964d00c8b8f))
+
 **Release 1.1.0** - 2022-09-22
 
 - Optional schema for error responses listed in the `@other_responses` decorator [#60](https://github.com/miguelgrinberg/apifairy/issues/60) ([commit](https://github.com/miguelgrinberg/apifairy/commit/e7164b2fada8666e1748fbd06cd78fed7b8d8867))
