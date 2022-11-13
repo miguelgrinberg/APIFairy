@@ -1,5 +1,11 @@
 # APIFairy Change Log
 
+**Release 1.3.0** - 2022-11-13
+
+- Support for documenting webhooks, per OpenAPI 3.1.0 spec ([commit](https://github.com/miguelgrinberg/apifairy/commit/f5b3843a7097c0d2a297e6074c2c1837521a4077))
+- Add Python 3.11 to test builds ([commit](https://github.com/miguelgrinberg/apifairy/commit/0d11acb143a6661f0a0d0b1e857a7626ba066f1d))
+- Stop testing Python 3.6 ([commit](https://github.com/miguelgrinberg/apifairy/commit/e17f702566792bdb045faebb21f1f682bca79b28))
+
 **Release 1.2.0** - 2022-10-06
 
 - Documentation of request and response headers [#63](https://github.com/miguelgrinberg/apifairy/issues/63) ([commit](https://github.com/miguelgrinberg/apifairy/commit/c2a9ec2cc5608f5c26c30428d964b964d00c8b8f))
