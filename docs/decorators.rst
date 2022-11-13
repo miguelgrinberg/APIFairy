@@ -264,3 +264,48 @@ If the roles feature of Flask-HTTPAuth is used, the documentation will include
 the required role(s) for each endpoint. Any keyword arguments given to the
 ``authenticate`` decorator, including the ``role`` argument, are passed
 through to Flask-HTTPAuth.
+
+@webhook
+--------
+
+The ``webhook`` decorator is used to document a webhook, which is an endpoint
+that must be implemented by the API client for the server to invoke as a
+callback or notification. OpenAPI added support for webhooks in its 3.1.0
+version.
+
+Webhooks are defined with a dummy function that is never invoked. After the
+``webhook`` decorator is applied, the ``arguments``, ``body``, ``response``
+and ``other_responses`` decorators can be used to document the inputs and
+outputs.
+
+Example::
+
+    from apifairy import webhook, body
+
+    @webhook
+    @body(ResultsSchema)
+    def results():
+        pass
+
+The ``webhook`` decorator accepts three optional arguments. The ``method``
+argument is used to specify the HTTP method that the server will use to invoke
+the webhook. If this argument is not specified, ``GET`` is used.
+
+The ``blueprint`` argument is used to optionally specify a blueprint with which
+this webhook should be grouped. This adds the a tag with the blueprint's name,
+which will make most documentation renderers add the webhook definition in the
+same section as the endpoints in the blueprint.
+
+The ``endpoint`` argument can be used to explicitly provide the endpoint name
+under which the webhook should be documented. If this argument is not given,
+the endpoint name is the name of the webhook function.
+
+The next example shows webhook definition using a ``POST`` HTTP method, added
+to a ``users`` blueprint::
+
+    from apifairy import webhook, body
+
+    @webhook(method='POST', blueprint=users)
+    @body(ResultsSchema)
+    def results():
+        pass

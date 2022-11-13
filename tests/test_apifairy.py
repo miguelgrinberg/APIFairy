@@ -14,7 +14,7 @@ from marshmallow import EXCLUDE
 from openapi_spec_validator import validate_spec
 
 from apifairy import APIFairy, body, arguments, response, authenticate, \
-    other_responses, FileField
+    other_responses, webhook, FileField
 
 ma = Marshmallow()
 
@@ -971,3 +971,67 @@ class TestAPIFairy(unittest.TestCase):
                          headers={'Authorization': 'Basic Zm9vOmJhcg=='})
         assert rv.status_code == 200
         assert rv.json == {'id': 2, 'name': 'foo'}
+
+    def test_webhook(self):
+        app, apifairy = self.create_app()
+        bp = Blueprint('bp', __name__)
+
+        @webhook
+        @body(Schema)
+        def default_webhook():
+            pass
+
+        @webhook(endpoint='my-endpoint')
+        @body(Schema)
+        def custom_endpoint():
+            pass
+
+        @webhook(method='POST')
+        @body(Schema)
+        def post_webhook():
+            pass
+
+        @webhook(endpoint='tag.tagged-webhook')
+        @body(Schema)
+        def tagged_webhook():
+            pass
+
+        @webhook(blueprint=bp)
+        @body(Schema)
+        def blueprint_webhook():
+            pass
+
+        app.register_blueprint(bp)
+        client = app.test_client()
+
+        rv = client.get('/apispec.json')
+        assert rv.status_code == 200
+        validate_spec(rv.json)
+        assert rv.json['openapi'] == '3.1.0'
+        assert 'default_webhook' in rv.json['webhooks']
+        assert 'get' in rv.json['webhooks']['default_webhook']
+        assert 'my-endpoint' in rv.json['webhooks']
+        assert 'get' in rv.json['webhooks']['my-endpoint']
+        assert 'post_webhook' in rv.json['webhooks']
+        assert 'post' in rv.json['webhooks']['post_webhook']
+        assert 'tagged-webhook' in rv.json['webhooks']
+        assert 'get' in rv.json['webhooks']['tagged-webhook']
+        assert 'blueprint_webhook' in rv.json['webhooks']
+        assert 'get' in rv.json['webhooks']['blueprint_webhook']
+
+    def test_webhook_duplicate(self):
+        app, apifairy = self.create_app()
+
+        def add_webhooks():
+            @webhook
+            @body(Schema)
+            def default_webhook():
+                pass
+
+            @webhook(endpoint='default_webhook')
+            @body(Schema)
+            def another_webhook():
+                pass
+
+        with pytest.raises(ValueError):
+            add_webhooks()

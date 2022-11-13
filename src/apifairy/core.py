@@ -21,6 +21,7 @@ except ImportError:  # pragma: no cover
     HTTPTokenAuth = None
 from werkzeug.http import HTTP_STATUS_CODES
 
+from apifairy.decorators import _webhooks
 from apifairy.exceptions import ValidationError
 from apifairy import fields as apifairy_fields
 
@@ -94,7 +95,7 @@ class APIFairy:
     @property
     def apispec(self):
         if self._apispec is None:
-            self._apispec = self._generate_apispec().to_dict()
+            self._apispec = self._generate_apispec()
             if self.apispec_callback:
                 self._apispec = self.apispec_callback(self._apispec)
         return self._apispec
@@ -113,7 +114,7 @@ class APIFairy:
         module_name = current_app.import_name
         while module_name:
             module = sys.modules[module_name]
-            if module.__doc__:
+            if module.__doc__:  # pragma: no cover
                 info['description'] = module.__doc__.strip()
                 break
             if '.' not in module_name:
@@ -125,7 +126,7 @@ class APIFairy:
 
         # tags
         tag_names = self.tags
-        if tag_names is None:
+        if tag_names is None:  # pragma: no branch
             # auto-generate tags from blueprints
             tag_names = []
             for rule in current_app.url_map.iter_rules():
@@ -133,7 +134,7 @@ class APIFairy:
                 if hasattr(view_func, '_spec'):
                     if '.' in rule.endpoint:
                         blueprint = rule.endpoint.rsplit('.', 1)[0]
-                        if blueprint not in tag_names:
+                        if blueprint not in tag_names:  # pragma: no branch
                             tag_names.append(blueprint)
         tags = {}
         for name, blueprint in current_app.blueprints.items():
@@ -141,7 +142,7 @@ class APIFairy:
                 continue
             module = sys.modules[blueprint.import_name]
             tag = {'name': name.title()}
-            if module.__doc__:
+            if module.__doc__:  # pragma: no cover
                 tag['description'] = module.__doc__.strip()
             tags[name] = tag
         tag_list = [tags[name] for name in tag_names]
@@ -149,7 +150,7 @@ class APIFairy:
         spec = APISpec(
             title=self.title,
             version=self.version,
-            openapi_version='3.0.3',
+            openapi_version='3.1.0' if _webhooks else '3.0.3',
             plugins=[ma_plugin],
             info=info,
             servers=servers,
@@ -189,7 +190,7 @@ class APIFairy:
                     if name in auth_names:
                         v = 2
                         new_name = f'{name}_{v}'
-                        while new_name in auth_names:
+                        while new_name in auth_names:  # pragma: no cover
                             v += 1
                             new_name = f'{name}_{v}'
                         name = new_name
@@ -226,14 +227,22 @@ class APIFairy:
         paths = {}
         rules = list(current_app.url_map.iter_rules())
         rules = sorted(rules, key=lambda rule: len(rule.rule))
+        rules += _webhooks.values()
         for rule in rules:
             operations = {}
-            view_func = current_app.view_functions[rule.endpoint]
+            is_endpoint = True  # False for webhooks
+            view_func = current_app.view_functions.get(rule.endpoint)
+            if view_func is None:
+                is_endpoint = False
+                view_func = rule.view_func
             if not hasattr(view_func, '_spec'):
                 continue
-            tag = None
             if '.' in rule.endpoint:
-                tag = rule.endpoint.rsplit('.', 1)[0].title()
+                tag, endpoint = rule.endpoint.rsplit('.', 1)
+                tag = tag.title()
+            else:
+                tag = None
+                endpoint = rule.endpoint
             methods = [method for method in rule.methods
                        if method in ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']]
             for method in methods:
@@ -335,40 +344,47 @@ class APIFairy:
                     }]
                 operations[method.lower()] = operation
 
-            path_arguments = re.findall(r'<(([^<:]+:)?([^>]+))>', rule.rule)
-            if path_arguments:
-                annotations = view_func.__annotations__ or {}
-                arguments = []
-                for _, type_, name in path_arguments:
-                    argument = {
-                        'in': 'path',
-                        'name': name,
-                    }
-                    if type_ == 'int:':
-                        argument['schema'] = {'type': 'integer'}
-                    elif type_ == 'float:':
-                        argument['schema'] = {'type': 'number'}
-                    else:
-                        argument['schema'] = {'type': 'string'}
-                    if isinstance(annotations.get(name), str):
-                        argument['description'] = annotations[name]
-                    elif _AnnotatedAlias and \
-                            isinstance(annotations.get(name), _AnnotatedAlias):
-                        for annotation in annotations[name].__metadata__:
-                            if isinstance(annotation, str):
-                                argument['description'] = annotation
-                                break
-                    arguments.append(argument)
+            if is_endpoint:
+                path_arguments = re.findall(r'<(([^<:]+:)?([^>]+))>',
+                                            rule.rule)
+                if path_arguments:
+                    annotations = view_func.__annotations__ or {}
+                    arguments = []
+                    for _, type_, name in path_arguments:
+                        argument = {
+                            'in': 'path',
+                            'name': name,
+                        }
+                        if type_ == 'int:':
+                            argument['schema'] = {'type': 'integer'}
+                        elif type_ == 'float:':
+                            argument['schema'] = {'type': 'number'}
+                        else:
+                            argument['schema'] = {'type': 'string'}
+                        if isinstance(annotations.get(name), str):
+                            argument['description'] = annotations[name]
+                        elif _AnnotatedAlias and isinstance(
+                                annotations.get(name), _AnnotatedAlias):
+                            for annotation in annotations[name].__metadata__:
+                                if isinstance(annotation, str):
+                                    argument['description'] = annotation
+                                    break
+                        arguments.append(argument)
 
-                for method, operation in operations.items():
-                    operation['parameters'] = arguments + \
-                        operation['parameters']
+                    for method, operation in operations.items():
+                        operation['parameters'] = arguments + \
+                            operation['parameters']
 
-            path = re.sub(r'<([^<:]+:)?', '{', rule.rule).replace('>', '}')
-            if path not in paths:
-                paths[path] = operations
+                path = re.sub(r'<([^<:]+:)?', '{', rule.rule).replace('>', '}')
+                if path not in paths:
+                    paths[path] = operations
+                else:
+                    paths[path].update(operations)
             else:
-                paths[path].update(operations)
+                # apispec does not support webhooks, so here they are added as
+                # paths, and later they are moved to their own section after
+                # the spec is generated
+                paths['webhook:' + endpoint] = operations
         for path, operations in paths.items():
             # sort by method before adding them to the spec
             sorted_operations = {}
@@ -377,4 +393,18 @@ class APIFairy:
                     sorted_operations[method] = operations[method]
             spec.path(path=path, operations=sorted_operations)
 
+        spec = spec.to_dict()
+
+        # extract webhooks from paths and add them to the webhooks section
+        webhooks = {
+            path[8:]: operations for path, operations in spec['paths'].items()
+            if path.startswith('webhook:')
+        }
+        if webhooks:
+            paths = {
+                path: operations for path, operations in spec['paths'].items()
+                if not path.startswith('webhook:')
+            }
+            spec['paths'] = paths
+            spec['webhooks'] = webhooks
         return spec

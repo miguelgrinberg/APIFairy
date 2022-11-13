@@ -23,6 +23,7 @@ class FlaskParser(BaseFlaskParser):
 
 parser = FlaskParser()
 use_args = parser.use_args
+_webhooks = {}
 
 
 def _ensure_sync(f):
@@ -118,3 +119,31 @@ def other_responses(responses):
         _annotate(f, other_responses=responses)
         return f
     return decorator
+
+
+def webhook(method='GET', blueprint=None, endpoint=None):
+    def decorator(f):
+        class WebhookRule:
+            def __init__(self, view_func, endpoint, methods):
+                self.view_func = view_func
+                self.endpoint = endpoint
+                self.methods = methods
+
+        nonlocal endpoint
+        endpoint = endpoint or f.__name__
+        if blueprint is not None:
+            endpoint = blueprint.name + '.' + endpoint
+        if endpoint not in _webhooks:
+            _webhooks[endpoint] = WebhookRule(f, endpoint, methods=[method])
+        else:
+            raise ValueError(f'Webhook {endpoint} has been defined twice')
+        return f
+
+    if callable(method) and blueprint is None and endpoint is None:
+        # invoked as a decorator without arguments
+        f = method
+        method = 'GET'
+        return decorator(f)
+    else:
+        # invoked as a decorator with arguments
+        return decorator
