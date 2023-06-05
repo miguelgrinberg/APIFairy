@@ -55,6 +55,11 @@ class FormUploadSchema(ma.Schema):
     file = FileField(required=True)
 
 
+class FormUploadSchema2(ma.Schema):
+    name = ma.Str()
+    files = ma.List(FileField(), required=True)
+
+
 class HeaderSchema(ma.Schema):
     x_token = ma.Str(data_key='X-Token', required=True)
 
@@ -643,6 +648,13 @@ class TestAPIFairy(unittest.TestCase):
             """upload file."""
             pass
 
+        @app.route('/uploads', methods=['POST'])
+        @body(FormUploadSchema2, location='form',
+              media_type='multipart/form-data')
+        def uploads():
+            """upload files."""
+            pass
+
         @app.route('/tokens', methods=['POST'])
         @response(Schema, headers=HeaderSchema)
         def token():
@@ -684,6 +696,15 @@ class TestAPIFairy(unittest.TestCase):
         assert 'description' not in rv.json['paths']['/upload']['post']
         assert 'multipart/form-data' in \
             rv.json['paths']['/upload']['post']['requestBody']['content']
+
+        assert rv.json['paths']['/uploads']['post']['operationId'] == 'uploads'
+        assert list(rv.json['paths']['/uploads']['post']['responses']) == \
+            ['204']
+        assert rv.json['paths']['/uploads']['post']['summary'] == \
+            'upload files.'
+        assert 'description' not in rv.json['paths']['/uploads']['post']
+        assert 'multipart/form-data' in \
+            rv.json['paths']['/uploads']['post']['requestBody']['content']
 
         assert rv.json['paths']['/tokens']['post']['operationId'] == 'token'
         assert list(rv.json['paths']['/tokens']['post']['responses']) == \

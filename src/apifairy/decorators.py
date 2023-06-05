@@ -69,13 +69,13 @@ def arguments(schema, location='query', **kwargs):
     return decorator
 
 
-def body(schema, location='json', **kwargs):
+def body(schema, location='json', media_type=None, **kwargs):
     if isinstance(schema, type):  # pragma: no cover
         schema = schema()
 
     def decorator(f):
         f = _ensure_sync(f)
-        _annotate(f, body=(schema, location))
+        _annotate(f, body=(schema, location, media_type))
         return use_args(schema, location=location, **kwargs)(f)
     return decorator
 

@@ -161,6 +161,24 @@ a standard ``FileStorage`` object from Flask::
     def create_user(user):
         # ...
 
+The ``FileField`` field type can also be combined with Marshmallow's ``List``
+to accept a list of files. But for this to work, the ``media_type`` argument
+needs to be added to the ``@body`` decorator to ensure that the request is
+parsed as a multipart form::
+
+    from apifairy import body
+    from apifairy.fields import FileField
+
+    class UserSchema(ma.Schema):
+        id = ma.Int()
+        username = ma.Str(required=True)
+        files = ma.List(FileField())
+
+    @app.route('/users', methods=['POST'])
+    @body(UserSchema, location='form', media_type='multipart/form-data')
+    def create_user(user):
+        # ...
+
 Advanced Usage
 ~~~~~~~~~~~~~~
 

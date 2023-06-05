@@ -319,8 +319,8 @@ class APIFairy:
                 if view_func._spec.get('body'):
                     schema = view_func._spec.get('body')[0]
                     location = view_func._spec.get('body')[1]
-                    media_type = 'application/json'
-                    if location == 'form':
+                    media_type = view_func._spec.get('body')[2]
+                    if media_type is None and location == 'form':
                         has_file = False
                         for field in schema.dump_fields.values():
                             if isinstance(field, apifairy_fields.FileField):
@@ -328,6 +328,8 @@ class APIFairy:
                                 break
                         media_type = 'application/x-www-form-urlencoded' \
                             if not has_file else 'multipart/form-data'
+                    if media_type is None:
+                        media_type = 'application/json'
                     operation['requestBody'] = {
                         'content': {
                             media_type: {
