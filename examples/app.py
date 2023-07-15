@@ -57,10 +57,10 @@ def new_user(user):
 @other_responses({404: 'User not found'})
 def get_user(id: Annotated[str, 'The id of the user']):
     """Return a user."""
-    users = [u for u in users if u['id'] == id]
-    if not users:
+    user = [u for u in users if u['id'] == id]
+    if not user:
         abort(404)
-    return users[0]
+    return user[0]
 
 
 @app.errorhandler(400)

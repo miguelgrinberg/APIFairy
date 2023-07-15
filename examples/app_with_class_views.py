@@ -65,12 +65,12 @@ class UserEndpoint(MethodView):
         other_responses({404: 'User not found'}),
     ]
 
-    def get(id):
+    def get(id: Annotated[str, 'The id of the user']):
         """Return a user."""
-        users = [u for u in users if u['id'] == id]
-        if not users:
+        user = [u for u in users if u['id'] == id]
+        if not user:
             abort(404)
-        return users[0]
+        return user[0]
 
 
 app.add_url_rule("/users", view_func=GetUsersEndpoint.as_view("get_users"))
