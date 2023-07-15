@@ -38,10 +38,11 @@ class GetUsersEndpoint(MethodView):
         response(UserSchema(many=True), description="The users"),
     ]
 
-    def get():
+    def get(self):
         """Return all the users."""
         return users
      
+
 class NewUserEndpoint(MethodView):
     decorators = [
         other_responses({400: 'Duplicate username or validation error'}),
@@ -49,7 +50,10 @@ class NewUserEndpoint(MethodView):
         body(UserSchema),
     ]
 
-    def post():
+    # important note: endpoints like this one that take arguments from APIFairy
+    # are currently broken, due to a bug in Flask
+    # see https://github.com/pallets/flask/issues/5199 
+    def post(self, user):
         """Create a new user."""
         if any([u['username'] == user['username'] for u in users]):
             abort(400)
@@ -65,7 +69,7 @@ class UserEndpoint(MethodView):
         other_responses({404: 'User not found'}),
     ]
 
-    def get(id: Annotated[str, 'The id of the user']):
+    def get(self, id: Annotated[str, 'The id of the user']):
         """Return a user."""
         user = [u for u in users if u['id'] == id]
         if not user:
