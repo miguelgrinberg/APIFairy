@@ -8,6 +8,7 @@ from apifairy.exceptions import ValidationError
 
 
 class FlaskParser(BaseFlaskParser):
+    USE_ARGS_POSITIONAL = False
     DEFAULT_VALIDATION_STATUS = 400
 
     def load_form(self, req, schema):
@@ -65,7 +66,15 @@ def arguments(schema, location='query', **kwargs):
         if not hasattr(f, '_spec') or f._spec.get('args') is None:
             _annotate(f, args=[])
         f._spec['args'].append((schema, location))
-        return use_args(schema, location=location, **kwargs)(f)
+        arg_name = f'{location}_{schema.__class__.__name__}_args'
+
+        @wraps(f)
+        def _f(*args, **kwargs):
+            location_args = kwargs.pop(arg_name, {})
+            return f(*args, location_args, **kwargs)
+
+        return use_args(schema, location=location, arg_name=arg_name,
+                        **kwargs)(_f)
     return decorator
 
 
@@ -76,7 +85,15 @@ def body(schema, location='json', media_type=None, **kwargs):
     def decorator(f):
         f = _ensure_sync(f)
         _annotate(f, body=(schema, location, media_type))
-        return use_args(schema, location=location, **kwargs)(f)
+        arg_name = f'{location}_{schema.__class__.__name__}_args'
+
+        @wraps(f)
+        def _f(*args, **kwargs):
+            location_args = kwargs.pop(arg_name, {})
+            return f(*args, location_args, **kwargs)
+
+        return use_args(schema, location=location, arg_name=arg_name,
+                        **kwargs)(_f)
     return decorator
 
 
