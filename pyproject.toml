@@ -1,6 +1,58 @@
+[project]
+name = "apifairy"
+version = "1.3.1.dev0"
+authors = [
+    { name = "Miguel Grinberg", email = "miguel.grinberg@gmail.com" },
+]
+description = "A minimalistic API framework built on top of Flask, Marshmallow and friends."
+classifiers = [
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.6"
+dependencies = [
+    "flask >= 1.1.0",
+    "flask-marshmallow",
+    "webargs >= 8.3.0",
+    "flask-httpauth >= 4",
+    "apispec >= 4",
+]
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[project.urls]
+Homepage = "https://github.com/miguelgrinberg/apifairy"
+"Bug Tracker" = "https://github.com/miguelgrinberg/apifairy/issues"
+
+[project.optional-dependencies]
+docs = [
+    "sphinx",
+]
+
+[tool.setuptools]
+zip-safe = false
+include-package-data = false
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.setuptools.packages.find]
+where = [
+    "src",
+]
+namespaces = false
+
+[tool.setuptools.package-data]
+apifairy = [
+    "templates/apifairy/*.html",
+]
+
 [build-system]
 requires = [
-    "setuptools>=42",
-    "wheel"
+    "setuptools>=61.2",
 ]
 build-backend = "setuptools.build_meta"
