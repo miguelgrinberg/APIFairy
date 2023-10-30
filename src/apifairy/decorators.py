@@ -1,6 +1,5 @@
 from functools import wraps
 
-import flask
 from flask import current_app, Response
 from webargs.flaskparser import FlaskParser as BaseFlaskParser
 
@@ -28,12 +27,15 @@ _webhooks = {}
 
 
 def _ensure_sync(f):
-    if flask.__version__ < '2.' or hasattr(f, '_sync_ensured'):
+    if hasattr(f, '_sync_ensured'):
         return f
 
     @wraps(f)
     def wrapper(*args, **kwargs):
-        return current_app.ensure_sync(f)(*args, **kwargs)
+        if hasattr(current_app, 'ensure_sync'):
+            return current_app.ensure_sync(f)(*args, **kwargs)
+        else:  # pragma: no cover
+            return f(*args, **kwargs)
 
     wrapper._sync_ensured = True
     return wrapper
