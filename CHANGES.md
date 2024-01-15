@@ -1,5 +1,15 @@
 # APIFairy Change Log
 
+**Release 1.4.0** - 2024-01-15
+
+- Remove use of deprecated `flask.__version__` ([commit](https://github.com/miguelgrinberg/apifairy/commit/a21ecba2fc6dbcdbb7e25c44933116bcaea8aaa4))
+- Handle breaking changes in `webargs.use_args` decorator ([commit](https://github.com/miguelgrinberg/apifairy/commit/943d30303bbdcaabda028ada8e1b2fee0132e7fa))
+- Option to set the media type for the body explicitly [#78](https://github.com/miguelgrinberg/apifairy/issues/78) ([commit](https://github.com/miguelgrinberg/apifairy/commit/b6886ebb4dd276d1d6c68de1122f362e0dec1f84))
+- Update to latest versions of JS and CSS 3rd-party resources [#73](https://github.com/miguelgrinberg/apifairy/issues/73) ([commit](https://github.com/miguelgrinberg/apifairy/commit/f91945a89dde4362be81b4ad9feec1486ac13170)) (thanks **Frank Yu**!)
+- Examples added to the repository ([commit #1](https://github.com/miguelgrinberg/apifairy/commit/b864bd2d4bbaf39f238dcddb691bca2a0cf4a34b) [commit #2](https://github.com/miguelgrinberg/apifairy/commit/ed2c9b99e8ed8b7cd61a1b95f7f295bd2a902590) [commit #3](https://github.com/miguelgrinberg/apifairy/commit/5612f2648c7d118013d0e77565f960e5a5eec07d))
+- Add Python 3.12 to builds ([commit](https://github.com/miguelgrinberg/apifairy/commit/2f3b99c19b1ddaf197b6eb7cf74d645375a42c0f))
+- Migrate Python package metadata to pyproject.toml ([commit](https://github.com/miguelgrinberg/apifairy/commit/38d765b6a492a3c40cbf4fdff6e235be84c67111))
+
 **Release 1.3.0** - 2022-11-13
 
 - Support for documenting webhooks, per OpenAPI 3.1.0 spec ([commit](https://github.com/miguelgrinberg/apifairy/commit/f5b3843a7097c0d2a297e6074c2c1837521a4077))
