@@ -1,6 +1,6 @@
 [project]
 name = "apifairy"
-version = "1.4.0"
+version = "1.4.1.dev0"
 authors = [
     { name = "Miguel Grinberg", email = "miguel.grinberg@gmail.com" },
 ]
