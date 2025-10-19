@@ -46,6 +46,7 @@ class APIFairy:
         self.version = app.config.get('APIFAIRY_VERSION', 'No version')
         self.apispec_path = app.config.get('APIFAIRY_APISPEC_PATH',
                                            '/apispec.json')
+        self.apispec_version = app.config.get('APIFAIRY_APISPEC_VERSION', None)
         self.apispec_decorators = app.config.get(
             'APIFAIRY_APISPEC_DECORATORS', [])
         self.ui = app.config.get('APIFAIRY_UI', 'redoc')
@@ -147,10 +148,11 @@ class APIFairy:
             tags[name] = tag
         tag_list = [tags[name] for name in tag_names]
         ma_plugin = MarshmallowPlugin(schema_name_resolver=resolver)
+        oas_version = '3.1.0' if _webhooks else self.apispec_version or '3.0.3'
         spec = APISpec(
             title=self.title,
             version=self.version,
-            openapi_version='3.1.0' if _webhooks else '3.0.3',
+            openapi_version=oas_version,
             plugins=[ma_plugin],
             info=info,
             servers=servers,

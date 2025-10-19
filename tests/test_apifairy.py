@@ -140,6 +140,26 @@ class TestAPIFairy(unittest.TestCase):
         rv = client.get('/apispec.json')
         assert rv.status_code == 404
 
+    def test_custom_apispec_version(self):
+        app, _ = self.create_app(config={'APIFAIRY_APISPEC_VERSION': '3.1.0'})
+
+        client = app.test_client()
+        rv = client.get('/apispec.json')
+        assert rv.status_code == 200
+        assert set(rv.json.keys()) == {
+            'openapi', 'info', 'servers', 'paths', 'tags'}
+        assert rv.json['openapi'] == '3.1.0'
+
+    def test_custom_apispec_no_version(self):
+        app, _ = self.create_app(config={'APIFAIRY_APISPEC_VERSION': None})
+
+        client = app.test_client()
+        rv = client.get('/apispec.json')
+        assert rv.status_code == 200
+        assert set(rv.json.keys()) == {
+            'openapi', 'info', 'servers', 'paths', 'tags'}
+        assert rv.json['openapi'] == '3.0.3'
+
     def test_ui(self):
         app, _ = self.create_app(config={'APIFAIRY_UI': 'swagger_ui'})
 
