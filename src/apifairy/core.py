@@ -19,6 +19,7 @@ try:
 except ImportError:  # pragma: no cover
     HTTPBasicAuth = None
     HTTPTokenAuth = None
+from packaging.version import Version
 from werkzeug.http import HTTP_STATUS_CODES
 
 from apifairy.decorators import _webhooks
@@ -148,11 +149,15 @@ class APIFairy:
             tags[name] = tag
         tag_list = [tags[name] for name in tag_names]
         ma_plugin = MarshmallowPlugin(schema_name_resolver=resolver)
-        oas_version = '3.1.0' if _webhooks else self.apispec_version or '3.0.3'
+        if self.apispec_version is None:
+            self.apispec_version = '3.1.0' if _webhooks else '3.0.3'
+        elif Version(self.apispec_version) < Version('3.1.0') and _webhooks:
+            raise RuntimeError("Must use at least openapi version '3.1.0' "
+                               'when using the @webhook decorator')
         spec = APISpec(
             title=self.title,
             version=self.version,
-            openapi_version=oas_version,
+            openapi_version=self.apispec_version,
             plugins=[ma_plugin],
             info=info,
             servers=servers,
