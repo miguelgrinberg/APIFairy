@@ -23,7 +23,7 @@ class Schema(ma.Schema):
     class Meta:
         unknown = EXCLUDE
 
-    id = ma.Integer(default=123)
+    id = ma.Integer(dump_default=123)
     name = ma.Str(required=True)
 
 
@@ -31,17 +31,17 @@ class Schema2(ma.Schema):
     class Meta:
         unknown = EXCLUDE
 
-    id2 = ma.Integer(default=123)
+    id2 = ma.Integer(dump_default=123)
     name2 = ma.Str(required=True)
 
 
 class FooSchema(ma.Schema):
-    id = ma.Integer(default=123)
+    id = ma.Integer(dump_default=123)
     name = ma.Str()
 
 
 class QuerySchema(ma.Schema):
-    id = ma.Integer(missing=1)
+    id = ma.Integer(load_default=1)
 
 
 class FormSchema(ma.Schema):

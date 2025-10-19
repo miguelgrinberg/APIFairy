@@ -11,7 +11,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-requires-python = ">=3.6"
+requires-python = ">=3.9"
 dependencies = [
     "flask >= 1.1.0",
     "flask-marshmallow",
@@ -31,6 +31,9 @@ Homepage = "https://github.com/miguelgrinberg/apifairy"
 [project.optional-dependencies]
 docs = [
     "sphinx",
+]
+dev = [
+    "tox",
 ]
 
 [tool.setuptools]

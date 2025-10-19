@@ -25,12 +25,12 @@ class UserSchema(ma.Schema):
     class Meta:
         description = 'This schema represents a user'
 
-    id = ma.String(dump_only=True, description="The user's id")
-    username = ma.String(required=True, description="The user's username")
-    first_name = ma.String(description="The user's first name")
-    last_name = ma.String(description="The user's last name")
-    age = ma.Integer(description="The user's age")
-    password = ma.String(load_only=True, description="The user's password")
+    id = ma.String(dump_only=True, metadata={"description": "The user's id"})
+    username = ma.String(required=True, metadata={"description": "The user's username"})
+    first_name = ma.String(metadata={"description": "The user's first name"})
+    last_name = ma.String(metadata={"description": "The user's last name"})
+    age = ma.Integer(metadata={"description": "The user's age"})
+    password = ma.String(load_only=True, metadata={"description": "The user's password"})
 
 
 class GetUsersEndpoint(MethodView):
