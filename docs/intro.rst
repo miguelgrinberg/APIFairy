@@ -91,6 +91,7 @@ Name                            Type   Default         Description
 ``APIFAIRY_TITLE``              String No title        The API's title.
 ``APIFAIRY_VERSION``            String No version      The API's version.
 ``APIFAIRY_APISPEC_PATH``       String */apispec.json* The URL path where the JSON OpenAPI specification for this project is served.
+``APIFAIRY_APISPEC_VERSION``    String ``None``        The version of the OpenAPI specification to generate for this project.
 ``APIFAIRY_APISPEC_DECORATORS`` List   []              A list of decorators to apply to the JSON OpenAPI endpoint.
 ``APIFAIRY_UI``                 String redoc           The documentation format to use. Supported formats are "redoc", "swagger_ui", "rapidoc" and "elements".
 ``APIFAIRY_UI_PATH``            String */docs*         The URL path where the documentation is served.
