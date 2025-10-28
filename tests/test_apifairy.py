@@ -140,6 +140,50 @@ class TestAPIFairy(unittest.TestCase):
         rv = client.get('/apispec.json')
         assert rv.status_code == 404
 
+    def test_custom_apispec_version(self):
+        app, _ = self.create_app(config={'APIFAIRY_APISPEC_VERSION': '3.1.0'})
+
+        client = app.test_client()
+        rv = client.get('/apispec.json')
+        assert rv.status_code == 200
+        assert set(rv.json.keys()) == {
+            'openapi', 'info', 'servers', 'paths', 'tags'}
+        assert rv.json['openapi'] == '3.1.0'
+
+    def test_custom_apispec_default_version(self):
+        app, _ = self.create_app()
+
+        client = app.test_client()
+        rv = client.get('/apispec.json')
+        assert rv.status_code == 200
+        assert set(rv.json.keys()) == {
+            'openapi', 'info', 'servers', 'paths', 'tags'}
+        assert rv.json['openapi'] == '3.0.3'
+
+    def test_custom_apispec_invalid_version_old(self):
+        app, _ = self.create_app(
+                config={'APIFAIRY_APISPEC_VERSION': '3.0.2'})
+
+        client = app.test_client()
+        rv = client.get('/apispec.json')
+        assert rv.status_code == 500
+
+    def test_custom_apispec_invalid_version_new(self):
+        app, _ = self.create_app(
+                config={'APIFAIRY_APISPEC_VERSION': '6.1.0'})
+
+        client = app.test_client()
+        rv = client.get('/apispec.json')
+        assert rv.status_code == 500
+
+    def test_custom_apispec_non_semver_version(self):
+        app, _ = self.create_app(
+                config={'APIFAIRY_APISPEC_VERSION': 'invalid'})
+
+        client = app.test_client()
+        rv = client.get('/apispec.json')
+        assert rv.status_code == 500
+
     def test_ui(self):
         app, _ = self.create_app(config={'APIFAIRY_UI': 'swagger_ui'})
 
@@ -1039,6 +1083,19 @@ class TestAPIFairy(unittest.TestCase):
         assert 'get' in rv.json['webhooks']['tagged-webhook']
         assert 'blueprint_webhook' in rv.json['webhooks']
         assert 'get' in rv.json['webhooks']['blueprint_webhook']
+
+    def test_webhook_invalid_apispec_version(self):
+        app, apifairy = self.create_app(
+                config={'APIFAIRY_APISPEC_VERSION': '3.0.3'})
+
+        @webhook
+        @body(Schema)
+        def unsupported_webhook():
+            pass
+
+        client = app.test_client()
+        rv = client.get('/apispec.json')
+        assert rv.status_code == 500
 
     def test_webhook_duplicate(self):
         app, apifairy = self.create_app()
