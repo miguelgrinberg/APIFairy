@@ -149,15 +149,19 @@ class APIFairy:
             tags[name] = tag
         tag_list = [tags[name] for name in tag_names]
         ma_plugin = MarshmallowPlugin(schema_name_resolver=resolver)
-        if self.apispec_version is None:
-            self.apispec_version = '3.1.0' if _webhooks else '3.0.3'
-        elif Version(self.apispec_version) < Version('3.1.0') and _webhooks:
+        apispec_version = self.apispec_version
+        if apispec_version is None:
+            apispec_version = '3.1.0' if _webhooks else '3.0.3'
+        version = Version(apispec_version)
+        if version < Version('3.0.3'):
+            raise RuntimeError("Must use at openapi version '3.0.3' or newer")
+        elif version < Version('3.1.0') and _webhooks:
             raise RuntimeError("Must use at least openapi version '3.1.0' "
                                'when using the @webhook decorator')
         spec = APISpec(
             title=self.title,
             version=self.version,
-            openapi_version=self.apispec_version,
+            openapi_version=apispec_version,
             plugins=[ma_plugin],
             info=info,
             servers=servers,
@@ -195,11 +199,11 @@ class APIFairy:
                     else:  # pragma: no cover
                         raise RuntimeError('Unknown authentication scheme')
                     if name in auth_names:
-                        v = 2
-                        new_name = f'{name}_{v}'
+                        apispec_version = 2
+                        new_name = f'{name}_{apispec_version}'
                         while new_name in auth_names:  # pragma: no cover
-                            v += 1
-                            new_name = f'{name}_{v}'
+                            apispec_version += 1
+                            new_name = f'{name}_{apispec_version}'
                         name = new_name
                     auth_names.append(name)
         security = {}

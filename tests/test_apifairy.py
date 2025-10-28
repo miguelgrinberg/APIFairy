@@ -150,7 +150,7 @@ class TestAPIFairy(unittest.TestCase):
             'openapi', 'info', 'servers', 'paths', 'tags'}
         assert rv.json['openapi'] == '3.1.0'
 
-    def test_custom_apispec_no_version(self):
+    def test_custom_apispec_default_version(self):
         app, _ = self.create_app()
 
         client = app.test_client()
@@ -160,9 +160,17 @@ class TestAPIFairy(unittest.TestCase):
             'openapi', 'info', 'servers', 'paths', 'tags'}
         assert rv.json['openapi'] == '3.0.3'
 
-    def test_custom_apispec_invalid_version(self):
+    def test_custom_apispec_invalid_version_old(self):
         app, _ = self.create_app(
-                config={'APIFAIRY_APISPEC_VERSION': '100.0.0'})
+                config={'APIFAIRY_APISPEC_VERSION': '3.0.2'})
+
+        client = app.test_client()
+        rv = client.get('/apispec.json')
+        assert rv.status_code == 500
+
+    def test_custom_apispec_invalid_version_new(self):
+        app, _ = self.create_app(
+                config={'APIFAIRY_APISPEC_VERSION': '6.1.0'})
 
         client = app.test_client()
         rv = client.get('/apispec.json')
