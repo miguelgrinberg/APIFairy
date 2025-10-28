@@ -1,5 +1,10 @@
 # APIFairy Change Log
 
+**Release 1.5.0** - 2025-10-28
+
+- Add `APIFAIRY_APISPEC_VERSION` option to the configuration [#92](https://github.com/miguelgrinberg/apifairy/issues/92) ([commit](https://github.com/miguelgrinberg/apifairy/commit/3fdd7632b24669901a0ffe67c5366a2992b6548e)) (thanks **Daniel Black**!)
+- Add support for Marshmallow 4, Python 3.13, 3.14 and pypy-3.11. Remove Python 3.8. [#93](https://github.com/miguelgrinberg/apifairy/issues/93) ([commit](https://github.com/miguelgrinberg/apifairy/commit/a2b791d59963c3cb61f1dcc1625bc5cdb4151bdd))
+
 **Release 1.4.0** - 2024-01-15
 
 - Remove use of deprecated `flask.__version__` ([commit](https://github.com/miguelgrinberg/apifairy/commit/a21ecba2fc6dbcdbb7e25c44933116bcaea8aaa4))
