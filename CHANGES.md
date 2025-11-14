@@ -1,5 +1,9 @@
 # APIFairy Change Log
 
+**Release 1.5.1** - 2025-11-14
+
+- Pin redoc CDN package to v2 [#94](https://github.com/miguelgrinberg/apifairy/issues/94) ([commit](https://github.com/miguelgrinberg/apifairy/commit/7acc2b4927ecf07bc270b7497eaa3334d2c92e3b)) (thanks **Trevor Mack**!)
+
 **Release 1.5.0** - 2025-10-28
 
 - Add `APIFAIRY_APISPEC_VERSION` option to the configuration [#92](https://github.com/miguelgrinberg/apifairy/issues/92) ([commit](https://github.com/miguelgrinberg/apifairy/commit/3fdd7632b24669901a0ffe67c5366a2992b6548e)) (thanks **Daniel Black**!)
