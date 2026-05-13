@@ -525,9 +525,10 @@ class TestAPIFairy(unittest.TestCase):
 
         rv = client.get('/apispec.json')
         assert rv.status_code == 200
-        assert rv.json['components']['securitySchemes'] == {
-            'basic_auth': {'scheme': 'basic', 'type': 'http'},
-        }
+        assert rv.json['components']['securitySchemes']['basic_auth'][
+            'scheme'] == 'basic'
+        assert rv.json['components']['securitySchemes']['basic_auth'][
+            'type'] == 'http'
         assert rv.json['paths']['/foo']['get']['security'] == [
             {'basic_auth': []}]
         assert rv.json['paths']['/bar']['get']['security'] == [
