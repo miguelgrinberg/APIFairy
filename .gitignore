@@ -130,3 +130,5 @@ dmypy.json
 
 mise.toml
 requirements*.txt
+.direnv
+.envrc
