@@ -688,7 +688,7 @@ class TestAPIFairy(unittest.TestCase):
             pass
 
         @app.route('/upload', methods=['POST'])
-        @body(FormUploadSchema, location='form')
+        @body(FormUploadSchema, location='form', description='upload form')
         def upload():
             """upload file."""
             pass
@@ -741,6 +741,8 @@ class TestAPIFairy(unittest.TestCase):
         assert 'description' not in rv.json['paths']['/upload']['post']
         assert 'multipart/form-data' in \
             rv.json['paths']['/upload']['post']['requestBody']['content']
+        assert 'upload form' == \
+            rv.json['paths']['/upload']['post']['requestBody']['description']
 
         assert rv.json['paths']['/uploads']['post']['operationId'] == 'uploads'
         assert list(rv.json['paths']['/uploads']['post']['responses']) == \

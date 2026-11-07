@@ -331,6 +331,7 @@ class APIFairy:
                     schema = view_func._spec.get('body')[0]
                     location = view_func._spec.get('body')[1]
                     media_type = view_func._spec.get('body')[2]
+                    description = view_func._spec.get('body')[3]
                     if media_type is None and location == 'form':
                         has_file = False
                         for field in schema.dump_fields.values():
@@ -349,6 +350,8 @@ class APIFairy:
                         },
                         'required': True,
                     }
+                    if description is not None:
+                        operation['requestBody']['description'] = description
 
                 if view_func._spec.get('auth'):
                     operation['security'] = [{
