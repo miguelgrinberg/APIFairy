@@ -1,5 +1,12 @@
 # APIFairy Change Log
 
+**Release 1.6.0** - 2026-11-07
+
+- Add `description` property to the `@body` decorator [#10002](https://code.miguelgrinberg.com/miguelgrinberg/apifairy.git/issues/10002) ([commit](https://code.miguelgrinberg.com/miguelgrinberg/apifairy.git/commit/9704ece1fdcfbf63b7ab0c2012f9998d65fdeafc))
+- Add `examples` argument to `@body` and `@response` decorators [#10001](https://code.miguelgrinberg.com/miguelgrinberg/apifairy.git/issues/10001) ([commit](https://code.miguelgrinberg.com/miguelgrinberg/apifairy.git/commit/cca8c36063e1ead882e293e6c648d3bccd5d8fe8))
+- Add Python 3.15 and PyPy 3.12 to CI builds ([commit](https://code.miguelgrinberg.com/miguelgrinberg/apifairy.git/commit/73301aa23d2fb93b75c98da518dec3b94b137b0f))
+- Add SPDX license to project definition ([commit](https://code.miguelgrinberg.com/miguelgrinberg/apifairy.git/commit/d4352d4bc4406f7646ffa733ce9b1468a295869d))
+
 **Release 1.5.1** - 2025-11-14
 
 - Pin redoc CDN package to v2 [#94](https://github.com/miguelgrinberg/apifairy/issues/94) ([commit](https://github.com/miguelgrinberg/apifairy/commit/7acc2b4927ecf07bc270b7497eaa3334d2c92e3b)) (thanks **Trevor Mack**!)
