@@ -264,6 +264,54 @@ string and header arguments both::
         """Retrieve all users"""
         # ...
 
+Request Body
+------------
+
+Documentation for the request body can be included in the ``description``
+argument to the ``@body``::
+
+    @users.route('/users', methods=['POST'])
+    @body(user_schema, description='The attributes of the new user.')
+    @response(user_schema, 201)
+    def new(args):
+        """Register a new user"""
+        user = User(**args)
+        db.session.add(user)
+        db.session.commit()
+        return user
+
+One or more example bodies can be passed as a dictionary in the ``examples``
+argument::
+
+    @users.route('/users', methods=['POST'])
+    @body(user_schema, examples={
+        "new_user": {
+            "summary": "Add a new regular user",
+            "value": {
+                "username": "user1234",
+                "role": "user",
+            },
+        },
+        "new_mod": {
+            "summary": "Add a new moderator",\]
+            value: {
+                "username": "user4567",
+                "role": "moderator",
+            },
+        },
+    })
+    @response(user_schema, 201)
+    def new(args):
+        """Register a new user"""
+        user = User(**args)
+        db.session.add(user)
+        db.session.commit()
+        return user
+
+See the documentation of the `Media Type Object <https://spec.openapis.org/oas/v3.1.0.html#media-type-object>`_
+in the OpenAPI specification for details on the format of the ``examples``
+argument.
+
 Responses
 ---------
 
@@ -291,6 +339,39 @@ argument can be used to add these to the documentation::
     def refresh(args):
         """Refresh an access token"""
         ...
+
+One or more example response bodies can be passed as a dictionary in the
+``examples`` argument::
+
+    @users.route('/users', methods=['POST'])
+    @body(user_schema)
+    @response(user_schema, examples={
+        "new_user": {
+            "summary": "New regular user added",
+            "value": {
+                "username": "user1234",
+                "role": "user",
+            },
+        },
+        "new_mod": {
+            "summary": "New moderator added",
+            value: {
+                "username": "user4567",
+                "role": "moderator",
+            },
+        },
+    })
+    def new(args):
+        """Register a new user"""
+        user = User(**args)
+        db.session.add(user)
+        db.session.commit()
+        return user
+
+
+See the documentation of the `Media Type Object <https://spec.openapis.org/oas/v3.1.0.html#media-type-object>`_
+in the OpenAPI specification for details on the format of the ``examples``
+argument.
 
 Error Responses
 ---------------

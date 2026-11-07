@@ -14,6 +14,7 @@ from apifairy import APIFairy, body, response, other_responses
 app = Flask(__name__)
 app.config['APIFAIRY_TITLE'] = 'APIFairy Simple Example'
 app.config['APIFAIRY_VERSION'] = '1.0'
+app.config['APIFAIRY_UI'] = 'swagger_ui'
 ma = Marshmallow(app)
 apifairy = APIFairy(app)
 users = []
@@ -32,14 +33,42 @@ class UserSchema(ma.Schema):
 
 
 @app.get('/users')
-@response(UserSchema(many=True), description="The users")
+@response(UserSchema(many=True), description="The users", examples={
+    "main": {
+        "summary": "All users",
+        "value": [
+            {
+                "username": "user1",
+                "first_name": "john",
+                "last_name": "smith",
+                "age": 34,
+            },
+            {
+                "username": "user2",
+                "first_name": "elena",
+                "last_name": "McGee",
+                "age": 44,
+            },
+        ],
+    },
+})
 def get_users():
     """Return all the users."""
     return users
 
 
 @app.post('/users')
-@body(UserSchema)
+@body(UserSchema, description="The user.", examples={
+    "main": {
+        "summary": "Create a new user",
+        "value": {
+            "username": "smith34",
+            "first_name": "john",
+            "last_name": "smith",
+            "age": 34,
+        },
+    },
+})
 @response(UserSchema, description="The new user")
 @other_responses({400: 'Duplicate username or validation error'})
 def new_user(user):

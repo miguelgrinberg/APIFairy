@@ -80,13 +80,15 @@ def arguments(schema, location='query', **kwargs):
     return decorator
 
 
-def body(schema, location='json', media_type=None, description=None, **kwargs):
+def body(schema, location='json', media_type=None, description=None,
+         examples=None, **kwargs):
     if isinstance(schema, type):  # pragma: no cover
         schema = schema()
 
     def decorator(f):
         f = _ensure_sync(f)
-        _annotate(f, body=(schema, location, media_type, description))
+        _annotate(f, body=(schema, location, media_type),
+                  description=description, examples=examples)
         arg_name = f'{location}_{schema.__class__.__name__}_args'
 
         @wraps(f)
@@ -99,14 +101,16 @@ def body(schema, location='json', media_type=None, description=None, **kwargs):
     return decorator
 
 
-def response(schema, status_code=200, description=None, headers=None):
+def response(schema, status_code=200, description=None, headers=None,
+             examples=None):
     if isinstance(schema, type):  # pragma: no cover
         schema = schema()
 
     def decorator(f):
         f = _ensure_sync(f)
         _annotate(f, response=schema, status_code=status_code,
-                  description=description, response_headers=headers)
+                  response_description=description, response_headers=headers,
+                  response_examples=examples)
 
         @wraps(f)
         def _response(*args, **kwargs):

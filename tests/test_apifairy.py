@@ -688,7 +688,8 @@ class TestAPIFairy(unittest.TestCase):
             pass
 
         @app.route('/upload', methods=['POST'])
-        @body(FormUploadSchema, location='form', description='upload form')
+        @body(FormUploadSchema, location='form', description='upload form',
+              examples={"example1": {}})
         def upload():
             """upload file."""
             pass
@@ -701,7 +702,8 @@ class TestAPIFairy(unittest.TestCase):
             pass
 
         @app.route('/tokens', methods=['POST'])
-        @response(Schema, headers=HeaderSchema)
+        @response(Schema, headers=HeaderSchema, description="token",
+                  examples={"response1": {}})
         def token():
             """get a token."""
             pass
@@ -743,6 +745,8 @@ class TestAPIFairy(unittest.TestCase):
             rv.json['paths']['/upload']['post']['requestBody']['content']
         assert 'upload form' == \
             rv.json['paths']['/upload']['post']['requestBody']['description']
+        assert rv.json['paths']['/upload']['post']['requestBody']['content'][
+            'multipart/form-data']['examples'] == {"example1": {}}
 
         assert rv.json['paths']['/uploads']['post']['operationId'] == 'uploads'
         assert list(rv.json['paths']['/uploads']['post']['responses']) == \
@@ -762,6 +766,8 @@ class TestAPIFairy(unittest.TestCase):
             rv.json['paths']['/tokens']['post']['responses']['200']
         assert 'X-Token' in \
             rv.json['paths']['/tokens']['post']['responses']['200']['headers']
+        assert rv.json['paths']['/tokens']['post']['responses']['200'][
+            'content']['application/json']['examples'] == {"response1": {}}
 
         r201 = {
             'content': {

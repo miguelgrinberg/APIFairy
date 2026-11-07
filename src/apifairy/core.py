@@ -278,6 +278,9 @@ class APIFairy:
                     operation['description'] = '\n'.join(docs[1:]).strip()
                 if view_func._spec.get('response'):
                     code = str(view_func._spec['status_code'])
+                    description = view_func._spec.get('response_description')
+                    headers_schema = view_func._spec.get('response_headers')
+                    examples = view_func._spec.get('response_examples')
                     operation['responses'] = {
                         code: {
                             'content': {
@@ -288,16 +291,18 @@ class APIFairy:
                         }
                     }
                     operation['responses'][code]['description'] = \
-                        view_func._spec['description'] or HTTP_STATUS_CODES[
-                            int(code)]
-                    if view_func._spec.get('response_headers'):
-                        schema = view_func._spec.get('response_headers')
-                        if isinstance(schema, type):  # pragma: no branch
-                            schema = schema()
+                        description or HTTP_STATUS_CODES[int(code)]
+                    if headers_schema:
+                        if isinstance(
+                                headers_schema, type):  # pragma: no branch
+                            headers_schema = headers_schema()
                         headers = ma_plugin.converter.schema2parameters(
-                            schema, location='headers')
+                            headers_schema, location='headers')
                         operation['responses'][code]['headers'] = {
                             header['name']: header for header in headers}
+                    if examples:
+                        operation['responses'][code]['content'][
+                            'application/json']['examples'] = examples
                 else:
                     operation['responses'] = {
                         '204': {'description': HTTP_STATUS_CODES[204]}}
@@ -331,7 +336,8 @@ class APIFairy:
                     schema = view_func._spec.get('body')[0]
                     location = view_func._spec.get('body')[1]
                     media_type = view_func._spec.get('body')[2]
-                    description = view_func._spec.get('body')[3]
+                    description = view_func._spec.get('description')
+                    examples = view_func._spec.get('examples')
                     if media_type is None and location == 'form':
                         has_file = False
                         for field in schema.dump_fields.values():
@@ -352,7 +358,9 @@ class APIFairy:
                     }
                     if description is not None:
                         operation['requestBody']['description'] = description
-
+                    if examples is not None:
+                        operation['requestBody']['content'][media_type][
+                            'examples'] = examples
                 if view_func._spec.get('auth'):
                     operation['security'] = [{
                         security[view_func._spec['auth']]: view_func._spec[
